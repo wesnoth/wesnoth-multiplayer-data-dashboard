@@ -1,4 +1,4 @@
-import json
+import os
 import sys
 
 import dash_bootstrap_components as dbc
@@ -9,16 +9,13 @@ from dash import Dash, Input, Output, State, callback, dcc, html, dash_table
 
 
 def create_mariadb_cursor():
-    with open('credentials.json') as file:
-        credentials = json.load(file)
-
     try:
         conn = mariadb.connect(
-            user=credentials['user'],
-            password=credentials['password'],
-            host=credentials['host'],
-            port=credentials['port'],
-            database=credentials['database']
+            user=os.environ['DB_USER'],
+            password=os.environ['DB_PASSWORD'],
+            host=os.environ['DB_HOST'],
+            port=int(os.environ['DB_PORT']),
+            database=os.environ['DB_DATABASE']
         )
     except mariadb.Error as error:
         print(f"Error connecting to MariaDB Platform: {error}")
