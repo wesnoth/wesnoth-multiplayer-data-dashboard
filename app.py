@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 import mariadb
 import pandas as pd
 import plotly.express as px
-from dash import Dash, Input, Output, State, callback, dcc, html, dash_table
+from dash import Dash, Input, Output, State, callback, dash_table, dcc, html
 
 
 def create_mariadb_cursor():
