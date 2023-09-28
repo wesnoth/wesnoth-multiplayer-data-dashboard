@@ -47,9 +47,10 @@ def create_app_layout(column_names):
             id='title-container'
         ),
         dbc.Row([
-            dcc.DatePickerRange(
-                id='date-picker',
-            )
+            html.Div([
+                html.Label("Specify a Date Range", id="date-picker-label"),
+                dcc.DatePickerRange(id='date-picker')
+            ], id='date-picker-container')
         ]),
         dbc.Row([
             dcc.Loading(

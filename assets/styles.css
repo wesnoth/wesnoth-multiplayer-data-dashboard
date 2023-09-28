@@ -42,6 +42,17 @@ h1 {
     margin-bottom: 20px;
 }
 
+#date-picker-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#date-picker-label {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #111;
+}
+
 .DateInput_input_1 {
     font-size: 16px;
 }
@@ -49,13 +60,14 @@ h1 {
 /* The container of the figures */
 @media (min-width: 992px) {
     .charts-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
     }
 }
+
 @media (max-width: 991px) {
     .charts-container * {
         margin-bottom: 20px;
