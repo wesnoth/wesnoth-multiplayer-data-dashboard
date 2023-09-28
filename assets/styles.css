@@ -1,5 +1,6 @@
 /* Put any custom style overrides here */
 
+/* Main Container */
 .container {
     padding: 0 15px;
 }
@@ -22,10 +23,20 @@
     }
 }
 
+/* Date Range Picker */
 .DateRangePicker_1 {
     margin-bottom: 20px;
 }
 
 .DateInput_input_1 {
     font-size: 16px;
+}
+
+/* The container of the figures */
+.charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
 }

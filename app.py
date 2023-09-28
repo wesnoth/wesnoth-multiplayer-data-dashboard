@@ -50,10 +50,10 @@ def create_app_layout(column_names):
         ]),
         dbc.Row([
             dcc.Loading(
-                children = dash_table.DataTable(
+                children=dash_table.DataTable(
                     id='table',
                     columns=[
-                        {"name": column, "id": column, "deletable": True, "selectable": True} for column in column_names
+                        {"name": column, "id": column, "deletable": False, "selectable": True} for column in column_names
                     ],
                     editable=True,
                     filter_action="native",
@@ -70,7 +70,28 @@ def create_app_layout(column_names):
                     style_table={'overflowX': 'auto'}
                 ),
             )
-        ])
+        ]),
+        dbc.Container(
+            id='charts-container',
+            className='charts-container',
+            children=[
+                dcc.Loading(
+                    children=dcc.Graph(
+                        id='oos-chart',
+                    )
+                ),
+                dcc.Loading(
+                    children=dcc.Graph(
+                        id='reload-chart',
+                    )
+                ),
+                dcc.Loading(
+                    children=dcc.Graph(
+                        id='observers-chart',
+                    )
+                )
+            ]
+        )
     ])
     return layout
 
@@ -80,7 +101,7 @@ def create_app_layout(column_names):
     Input('date-picker', 'start_date'),
     Input('date-picker', 'end_date'),
 )
-def fetch_data(start_date, end_date):
+def update_table(start_date, end_date):
     cursor = create_mariadb_cursor()
     cursor.execute(
         "SELECT * FROM tmp_game_info WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
@@ -91,6 +112,23 @@ def fetch_data(start_date, end_date):
     )
     cursor.connection.close()
     return df.to_dict('records')
+
+
+@callback(
+    Output('oos-chart', 'figure'),
+    Output('reload-chart', 'figure'),
+    Output('observers-chart', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+)
+def update_charts(data, columns):
+    df = pd.DataFrame(data, columns=[c['name'] for c in columns])
+    charts = (
+        px.pie(df, names='OOS', title='Games with Out-of-Sync Errors', hole=0.7),
+        px.pie(df, names='RELOAD', title='Reloaded Games', hole=0.7),
+        px.pie(df, names='OBSERVERS', title='Observers Allowed', hole=0.7),
+    )
+    return charts
 
 
 if __name__ == '__main__':
