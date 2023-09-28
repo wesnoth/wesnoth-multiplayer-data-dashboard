@@ -25,7 +25,10 @@ def create_mariadb_cursor():
 
 
 def create_app():
-    app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+    app = Dash(__name__, external_stylesheets=[
+        "https://www.wesnoth.org/wesmere/css/wesmere-1.1.10.css",
+    ])
+    app.title = "Wesnoth Multiplayer Dashboard"
 
     cursor = create_mariadb_cursor()
     cursor.execute("SHOW COLUMNS FROM tmp_game_info;")
@@ -38,7 +41,7 @@ def create_app():
 
 def create_app_layout(column_names):
     layout = dbc.Container([
-        html.H1("Wesnoth Multiplayer Statistics"),
+        html.H1("Wesnoth Multiplayer Dashboard"),
         html.Hr(),
         dbc.Row([
             dcc.DatePickerRange(
@@ -63,7 +66,7 @@ def create_app_layout(column_names):
                     selected_rows=[],
                     page_action="native",
                     page_current=0,
-                    page_size=30,
+                    page_size=10,
                     style_table={'overflowX': 'auto'}
                 ),
             )
