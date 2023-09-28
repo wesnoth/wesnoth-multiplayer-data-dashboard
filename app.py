@@ -46,8 +46,8 @@ def create_app_layout(column_names):
             )
         ]),
         dbc.Row([
-            html.Div(
-                dash_table.DataTable(
+            dcc.Loading(
+                children = dash_table.DataTable(
                     id='table',
                     columns=[
                         {"name": column, "id": column, "deletable": True, "selectable": True} for column in column_names
