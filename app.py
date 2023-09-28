@@ -46,56 +46,58 @@ def create_app_layout(column_names):
             className='mt-4',
             id='title-container'
         ),
-        dbc.Row([
-            html.Div([
-                html.Label("Specify a Date Range", id="date-picker-label"),
-                dcc.DatePickerRange(id='date-picker')
-            ], id='date-picker-container')
-        ]),
-        dbc.Row([
-            dcc.Loading(
-                children=dash_table.DataTable(
-                    id='table',
-                    columns=[
-                        {"name": column, "id": column, "deletable": False, "selectable": True} for column in column_names
-                    ],
-                    editable=True,
-                    filter_action="native",
-                    sort_action="native",
-                    sort_mode="multi",
-                    column_selectable="single",
-                    row_selectable="multi",
-                    row_deletable=True,
-                    selected_columns=[],
-                    selected_rows=[],
-                    page_action="native",
-                    page_current=0,
-                    page_size=10,
-                    style_table={'overflowX': 'auto'}
-                ),
-            )
-        ]),
-        html.Div(
-            id='charts-container',
-            className='charts-container',
-            children=[
+        dbc.Container([
+            dbc.Row([
+                html.Div([
+                    html.Label("Specify a Date Range (START_TIME)",
+                               id="date-picker-label"),
+                    dcc.DatePickerRange(id='date-picker')
+                ], id='date-picker-container')
+            ]),
+            dbc.Row([
                 dcc.Loading(
-                    children=dcc.Graph(
-                        id='oos-chart',
-                    )
-                ),
-                dcc.Loading(
-                    children=dcc.Graph(
-                        id='reload-chart',
-                    )
-                ),
-                dcc.Loading(
-                    children=dcc.Graph(
-                        id='observers-chart',
-                    )
+                    children=dash_table.DataTable(
+                        id='table',
+                        columns=[
+                            {"name": column, "id": column, "deletable": False, "selectable": True} for column in column_names
+                        ],
+                        editable=True,
+                        filter_action="native",
+                        sort_action="native",
+                        sort_mode="multi",
+                        column_selectable="single",
+                        row_selectable="multi",
+                        row_deletable=True,
+                        selected_columns=[],
+                        selected_rows=[],
+                        page_action="native",
+                        page_current=0,
+                        page_size=10,
+                        style_table={'overflowX': 'auto'}
+                    ),
                 )
-            ]
-        )
+            ]),
+            html.Div(
+                id='charts-container',
+                children=[
+                    dcc.Loading(
+                        children=dcc.Graph(
+                            id='oos-chart',
+                        )
+                    ),
+                    dcc.Loading(
+                        children=dcc.Graph(
+                            id='reload-chart',
+                        )
+                    ),
+                    dcc.Loading(
+                        children=dcc.Graph(
+                            id='observers-chart',
+                        )
+                    )
+                ]
+            )
+        ], id='content-container')
     ])
     return layout
 
