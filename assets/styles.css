@@ -23,6 +23,20 @@
     }
 }
 
+#title-container {
+    background: linear-gradient(to right, #0f1421, #161e31, #0f1421);
+    margin-bottom: 0px;
+    padding: 0px;
+    border-bottom: #b48648 1px solid;
+    box-shadow: 0px 1px 4px 0px #000;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #b48648;
+    padding: 10px;
+}
+
 /* Date Range Picker */
 .DateRangePicker_1 {
     margin-bottom: 20px;
@@ -33,10 +47,17 @@
 }
 
 /* The container of the figures */
-.charts-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
+@media (min-width: 992px) {
+    .charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+    }
+}
+@media (max-width: 991px) {
+    .charts-container * {
+        margin-bottom: 20px;
+    }
 }

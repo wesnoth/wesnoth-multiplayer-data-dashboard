@@ -41,8 +41,11 @@ def create_app():
 
 def create_app_layout(column_names):
     layout = dbc.Container([
-        html.H1("Wesnoth Multiplayer Dashboard"),
-        html.Hr(),
+        dbc.Container(
+            html.H1("Wesnoth Multiplayer Dashboard"),
+            className='mt-4',
+            id='title-container'
+        ),
         dbc.Row([
             dcc.DatePickerRange(
                 id='date-picker',
@@ -71,7 +74,7 @@ def create_app_layout(column_names):
                 ),
             )
         ]),
-        dbc.Container(
+        html.Div(
             id='charts-container',
             className='charts-container',
             children=[
