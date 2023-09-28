@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -18,7 +19,7 @@ def create_mariadb_cursor():
             database=os.environ['DB_DATABASE']
         )
     except mariadb.Error as error:
-        print(f"Error connecting to MariaDB Platform: {error}")
+        logging.error(f"Error connecting to MariaDB Platform: {error}")
         sys.exit(1)
 
     return conn.cursor()
