@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 import mariadb
 import pandas as pd
 import plotly.express as px
-from dash import Dash, Input, Output, State, callback, dash_table, dcc, html
+from dash import Dash, Input, Output, callback, dash_table, dcc, html
 
 
 def create_mariadb_cursor():
@@ -127,15 +127,52 @@ def update_table(start_date, end_date):
     Output('observers-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
+    prevent_initial_call=True
 )
 def update_charts(data, columns):
     df = pd.DataFrame(data, columns=[c['name'] for c in columns])
-    charts = (
-        px.pie(df, names='OOS', title='Games with Out-of-Sync Errors', hole=0.7),
-        px.pie(df, names='RELOAD', title='Reloaded Games', hole=0.7),
-        px.pie(df, names='OBSERVERS', title='Observers Allowed', hole=0.7),
+    oos_value_counts = (
+        df['OOS'].value_counts()
+        .to_frame()
     )
-    return charts
+    reload_value_counts = (
+        df['RELOAD'].value_counts()
+        .to_frame()
+    )
+    observers_value_counts = (
+        df['OBSERVERS'].value_counts()
+        .to_frame()
+    )
+    figures = (
+        px.pie(
+            oos_value_counts,
+            names=oos_value_counts.index,
+            values=oos_value_counts['count'],
+            title='Games with Out-of-Sync Errors',
+            hole=0.7,
+        ),
+        px.pie(
+            reload_value_counts,
+            names=reload_value_counts.index,
+            values=reload_value_counts['count'],
+            title='Reloaded Games',
+            hole=0.7,
+        ),
+        px.pie(
+            observers_value_counts,
+            names=observers_value_counts.index,
+            values=observers_value_counts['count'],
+            title='Observers Allowed',
+            hole=0.7,
+        ),
+    )
+    for figure in figures:
+        figure.update_layout(
+            hoverlabel=dict(
+                bgcolor="white",
+            )
+        )
+    return tuple(figures)
 
 
 if __name__ == '__main__':
