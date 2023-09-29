@@ -25,11 +25,17 @@ def connect_to_mariadb():
 
 
 def create_app():
-    app = Dash(__name__, external_stylesheets=[
+    app = Dash(
+        __name__, 
+        external_stylesheets=[
         "https://www.wesnoth.org/wesmere/css/wesmere-1.1.10.css",
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-    ])
-    app.title = "Wesnoth Multiplayer Dashboard"
+        ],
+        title="Wesnoth Multiplayer Dashboard",
+        meta_tags=[
+            {'name': 'description', 'content': 'A dashboard for a database of Wesnoth multiplayer games.'}
+        ]
+    )
 
     # Fetch the column names of the tmp_game_info table.
     mariadb_connection = connect_to_mariadb()
