@@ -1,4 +1,7 @@
-/* Put any custom style overrides here */
+/* This file contains custom style overrides for the Wesnoth MP Database Dashboard.
+The CSS Rules here are prioritized over the CSS Rules in other imported CSS files,
+such as the ones specified in the Dash app's external stylesheets.*/
+
 
 /* Main Container */
 #content-container {

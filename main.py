@@ -1,5 +1,5 @@
 """
-This script creates and runs the Flask application for the Wesnoth MP Database Dashboard.
+This script creates and runs the Dash application for the Wesnoth MP Database Dashboard.
 This is used to start the production server. For development, use `python app.py` instead.
 
 Usage:
