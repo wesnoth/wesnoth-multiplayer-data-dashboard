@@ -27,6 +27,7 @@ def connect_to_mariadb():
 def create_app():
     app = Dash(__name__, external_stylesheets=[
         "https://www.wesnoth.org/wesmere/css/wesmere-1.1.10.css",
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     ])
     app.title = "Wesnoth Multiplayer Dashboard"
 
@@ -45,6 +46,11 @@ def create_app():
 
 
 def create_app_layout(column_names):
+    columns = [{"name": column, "id": column} for column in column_names]
+
+    # Add a column to the table. The GAME_DURATION column is added this way because it is only derived from other columns in the original MariaDB database.
+    columns.append({"name": "GAME_DURATION", "id": "GAME_DURATION"})
+
     layout = dbc.Container([
         dbc.Container(
             html.H1("Wesnoth Multiplayer Dashboard"),
@@ -53,8 +59,8 @@ def create_app_layout(column_names):
         ),
         dbc.Container([
             dbc.Row([
-                html.Div([
-                    html.Label("Specify a Date Range (START_TIME)",
+                dbc.Container([
+                    html.Label("Specify a Date Range",
                                id="date-picker-label"),
                     dcc.DatePickerRange(id='date-picker')
                 ], id='date-picker-container')
@@ -63,9 +69,7 @@ def create_app_layout(column_names):
                 dcc.Loading(
                     children=dash_table.DataTable(
                         id='table',
-                        columns=[
-                            {"name": column, "id": column, "deletable": False, "selectable": True} for column in column_names
-                        ],
+                        columns=columns,
                         editable=True,
                         filter_action="native",
                         sort_action="native",
@@ -82,19 +86,54 @@ def create_app_layout(column_names):
                     ),
                 )
             ]),
-            html.Div(
+            dbc.Container(
                 children=dcc.Loading(
-                    children=dbc.Container([
-                        dcc.Graph(id='instance_version-chart'),
-                        dcc.Graph(id='oos-chart'),
-                        dcc.Graph(id='reload-chart'),
-                        dcc.Graph(id='observers-chart'),
-                        dcc.Graph(id='password-chart'),
-                        dcc.Graph(id='public-chart')
-                    ], id='charts-container')
+                    children=[
+                        dbc.Container(
+                            children=[dcc.Graph(id='game-duration-histogram')],
+                            id='histogram-container'
+                        ),
+                        dbc.Container(
+                            children=[
+                                dcc.Graph(id='instance_version-chart'),
+                                dcc.Graph(id='oos-chart'),
+                                dcc.Graph(id='reload-chart'),
+                                dcc.Graph(id='observers-chart'),
+                                dcc.Graph(id='password-chart'),
+                                dcc.Graph(id='public-chart'),
+                            ],
+                            id='donut-charts-container',
+                        ),
+                    ]
                 )
             )
-        ], id='content-container')
+        ], id='content-container'),
+        html.Footer(
+            html.Div(
+                [
+                    html.P(
+                        "This Dashboard is a Single Page Application made using Plotly Dash.",
+                        style={
+                            "font-size": "14px",
+                            "font-style": "italic",
+                            "margin-top": "10px",
+                        }
+                    ),
+                    html.A(
+                        html.Div([
+                            html.I(className="fa fa-github"),
+                            "  View Source Code on GitHub ",
+                            html.I(className="fa fa-external-link"),
+                        ]),
+                        href="#",
+                        target="_blank",
+                        id="github-link",
+                    ),
+                ],
+                className='text-center',
+                id='footer-container'
+            )
+        )
     ])
     return layout
 
@@ -113,7 +152,15 @@ def update_table(start_date, end_date):
     df = (
         pd.DataFrame(cursor.fetchall(), columns=columns)
         .map(lambda x: x[0] if type(x) is bytes else x)
+        .assign(
+            START_TIME=lambda x: pd.to_datetime(x['START_TIME']),
+            END_TIME=lambda x: pd.to_datetime(x['END_TIME']),
+            # Calculate the game duration in minutes.
+            GAME_DURATION=lambda x: (
+                x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
+        )
     )
+    logging.debug(df.info())
     cursor.close()
     mariadb_connection.close()
     return df.to_dict('records')
@@ -126,6 +173,7 @@ def update_table(start_date, end_date):
     Output('observers-chart', 'figure'),
     Output('password-chart', 'figure'),
     Output('public-chart', 'figure'),
+    Output('game-duration-histogram', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
     prevent_initial_call=True
@@ -224,6 +272,16 @@ def update_charts(data, columns):
             values=public_value_counts['count'],
             title='Games with a Public Replay File',
             hole=0.7,
+        ),
+        px.histogram(
+            df,
+            x='GAME_DURATION',
+            title='Game Duration (minutes)',
+            labels={'GAME_DURATION': 'Duration (minutes)'},
+            histnorm='percent',
+        ).update_traces(
+            marker_line_width=1,
+            marker_line_color="white"
         )
     )
     for figure in figures:
@@ -232,7 +290,7 @@ def update_charts(data, columns):
                 bgcolor="white",
             )
         )
-    return tuple(figures)
+    return figures
 
 
 if __name__ == '__main__':
