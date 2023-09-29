@@ -41,16 +41,14 @@ def create_app():
     cursor.close()
     mariadb_connection.close()
 
+    # Add a column for the game duration. It is added this way because the column is not stored in the database and is derived from the START_TIME and END_TIME columns.
+    column_names.append("GAME_DURATION")
+
     app.layout = create_app_layout(column_names)
     return app
 
 
 def create_app_layout(column_names):
-    columns = [{"name": column, "id": column} for column in column_names]
-
-    # Add a column to the table. The GAME_DURATION column is added this way because it is only derived from other columns in the original MariaDB database.
-    columns.append({"name": "GAME_DURATION", "id": "GAME_DURATION"})
-
     layout = dbc.Container([
         dbc.Container(
             html.H1("Wesnoth Multiplayer Dashboard"),
@@ -69,7 +67,8 @@ def create_app_layout(column_names):
                 dcc.Loading(
                     children=dash_table.DataTable(
                         id='table',
-                        columns=columns,
+                        columns=[{"name": column, "id": column}
+                                 for column in column_names],
                         editable=True,
                         filter_action="native",
                         sort_action="native",
