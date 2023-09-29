@@ -18,11 +18,10 @@ def create_mariadb_cursor():
             port=int(os.environ['DB_PORT']),
             database=os.environ['DB_DATABASE']
         )
+        return conn.cursor()
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
         sys.exit(1)
-
-    return conn.cursor()
 
 
 def create_app():
