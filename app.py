@@ -180,7 +180,7 @@ def update_charts(data, columns):
 if __name__ == '__main__':
 
     # If you are running this file directly, it is implied that you are developing, thus debug logs are enabled here.
-    # You can add other things that you want to be executed or set only when developing the app here.
+    # Place anything that you want to be executed or set only when developing the app here.
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s',
