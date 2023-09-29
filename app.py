@@ -110,16 +110,12 @@ def create_app_layout(column_names):
         ], id='content-container'),
         html.Footer(
             html.Div(
-                [
-                    html.P(
-                        "This Dashboard is a Single Page Application made using Plotly Dash.",
-                        style={
-                            "font-size": "14px",
-                            "font-style": "italic",
-                            "margin-top": "10px",
-                        }
+                children=[
+                    dcc.Markdown(
+                        "This Dashboard is a Single Page Application made using [Plotly Dash](https://plotly.com/dash/).",
+                        id="plotly-dash-credit"
                     ),
-                    html.A(
+                    dcc.Link(
                         html.Div([
                             html.I(className="fa fa-github"),
                             "  View Source Code on GitHub ",
