@@ -9,16 +9,16 @@ import plotly.express as px
 from dash import Dash, Input, Output, callback, dash_table, dcc, html
 
 
-def create_mariadb_cursor():
+def connect_to_mariadb():
     try:
-        conn = mariadb.connect(
+        connection = mariadb.connect(
             user=os.environ['DB_USER'],
             password=os.environ['DB_PASSWORD'],
             host=os.environ['DB_HOST'],
             port=int(os.environ['DB_PORT']),
             database=os.environ['DB_DATABASE']
         )
-        return conn.cursor()
+        return connection
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
         sys.exit(1)
@@ -30,14 +30,17 @@ def create_app():
     ])
     app.title = "Wesnoth Multiplayer Dashboard"
 
-    cursor = create_mariadb_cursor()
+    # Fetch the column names of the tmp_game_info table.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
     target_table = "tmp_game_info"
     cursor.execute(f"SHOW COLUMNS FROM {target_table};")
     logging.debug(f"Fetched column names of {target_table} from database")
     column_names = [i[0] for i in cursor.fetchall()]
-    cursor.connection.close()
-    app.layout = create_app_layout(column_names)
+    cursor.close()
+    mariadb_connection.close()
 
+    app.layout = create_app_layout(column_names)
     return app
 
 
@@ -80,24 +83,16 @@ def create_app_layout(column_names):
                 )
             ]),
             html.Div(
-                id='charts-container',
-                children=[
-                    dcc.Loading(
-                        children=dcc.Graph(
-                            id='oos-chart',
-                        )
-                    ),
-                    dcc.Loading(
-                        children=dcc.Graph(
-                            id='reload-chart',
-                        )
-                    ),
-                    dcc.Loading(
-                        children=dcc.Graph(
-                            id='observers-chart',
-                        )
-                    )
-                ]
+                children=dcc.Loading(
+                    children=dbc.Container([
+                        dcc.Graph(id='instance_version-chart'),
+                        dcc.Graph(id='oos-chart'),
+                        dcc.Graph(id='reload-chart'),
+                        dcc.Graph(id='observers-chart'),
+                        dcc.Graph(id='password-chart'),
+                        dcc.Graph(id='public-chart')
+                    ], id='charts-container')
+                )
             )
         ], id='content-container')
     ])
@@ -110,7 +105,8 @@ def create_app_layout(column_names):
     Input('date-picker', 'end_date'),
 )
 def update_table(start_date, end_date):
-    cursor = create_mariadb_cursor()
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
     cursor.execute(
         "SELECT * FROM tmp_game_info WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
     columns = [i[0] for i in cursor.description]
@@ -118,33 +114,82 @@ def update_table(start_date, end_date):
         pd.DataFrame(cursor.fetchall(), columns=columns)
         .map(lambda x: x[0] if type(x) is bytes else x)
     )
-    cursor.connection.close()
+    cursor.close()
+    mariadb_connection.close()
     return df.to_dict('records')
 
 
 @callback(
+    Output('instance_version-chart', 'figure'),
     Output('oos-chart', 'figure'),
     Output('reload-chart', 'figure'),
     Output('observers-chart', 'figure'),
+    Output('password-chart', 'figure'),
+    Output('public-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
     prevent_initial_call=True
 )
 def update_charts(data, columns):
-    df = pd.DataFrame(data, columns=[c['name'] for c in columns])
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
+    instance_version_value_counts = (
+        df['INSTANCE_VERSION']
+        .value_counts()
+        .to_frame()
+    )
     oos_value_counts = (
-        df['OOS'].value_counts()
+        df['OOS']
+        .replace({
+            0: 'Did not encounter OOS',
+            1: 'Encountered OOS'
+        })
+        .value_counts()
         .to_frame()
     )
     reload_value_counts = (
-        df['RELOAD'].value_counts()
+        df['RELOAD']
+        .replace({
+            0: 'New game',
+            1: 'Reload of a previous game'
+        })
+        .value_counts()
         .to_frame()
     )
     observers_value_counts = (
-        df['OBSERVERS'].value_counts()
+        df['OBSERVERS']
+        .replace({
+            0: 'Observers not allowed',
+            1: 'Observers allowed'
+        })
+        .value_counts()
+        .to_frame()
+    )
+    password_value_counts = (
+        df['PASSWORD']
+        .replace({
+            0: 'Password not required',
+            1: 'Password required'
+        })
+        .value_counts()
+        .to_frame()
+    )
+    public_value_counts = (
+        df['PUBLIC']
+        .replace({
+            0: 'Replay file was not made public',
+            1: 'Replay file was made public'
+        })
+        .value_counts()
         .to_frame()
     )
     figures = (
+        px.pie(
+            instance_version_value_counts,
+            names=instance_version_value_counts.index,
+            values=instance_version_value_counts['count'],
+            title='Wesnoth Instance Version',
+            hole=0.7,
+        ),
         px.pie(
             oos_value_counts,
             names=oos_value_counts.index,
@@ -163,9 +208,23 @@ def update_charts(data, columns):
             observers_value_counts,
             names=observers_value_counts.index,
             values=observers_value_counts['count'],
-            title='Observers Allowed',
+            title='Games that Allow Observers',
             hole=0.7,
         ),
+        px.pie(
+            password_value_counts,
+            names=password_value_counts.index,
+            values=password_value_counts['count'],
+            title='Games Requiring a Password to Join',
+            hole=0.7,
+        ),
+        px.pie(
+            public_value_counts,
+            names=public_value_counts.index,
+            values=public_value_counts['count'],
+            title='Games with a Public Replay File',
+            hole=0.7,
+        )
     )
     for figure in figures:
         figure.update_layout(
