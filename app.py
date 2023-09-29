@@ -33,7 +33,7 @@ def create_app():
     cursor = create_mariadb_cursor()
     target_table = "tmp_game_info"
     cursor.execute(f"SHOW COLUMNS FROM {target_table};")
-    logging.debug(f"Fetched column names of {target_table} from database.")
+    logging.debug(f"Fetched column names of {target_table} from database")
     column_names = [i[0] for i in cursor.fetchall()]
     cursor.connection.close()
     app.layout = create_app_layout(column_names)
