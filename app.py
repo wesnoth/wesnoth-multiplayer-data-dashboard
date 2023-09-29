@@ -42,7 +42,6 @@ def create_app():
 
 
 def create_app_layout(column_names):
-    logging.debug("Executing create_app_layout()...")
     layout = dbc.Container([
         dbc.Container(
             html.H1("Wesnoth Multiplayer Dashboard"),
@@ -178,14 +177,18 @@ def update_charts(data, columns):
 
 
 if __name__ == '__main__':
+    """
+    If you are running this file directly, it is implied that you are developing.
+    Place anything that you want to be executed or set only when developing the app here.
+    """
 
-    # If you are running this file directly, it is implied that you are developing, thus debug logs are enabled here.
-    # Place anything that you want to be executed or set only when developing the app here.
+    # Enable debug logs.
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
+    # Run the app in debug mode and show full error tracebacks in the console by setting dev_tools_prune_errors to False.
     app = create_app()
     app.run(debug=True, dev_tools_prune_errors=False)
