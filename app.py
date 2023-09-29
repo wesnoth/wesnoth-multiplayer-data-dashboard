@@ -33,8 +33,10 @@ def create_app():
         ],
         title="Wesnoth Multiplayer Dashboard",
         meta_tags=[
-            {'name': 'description',
-                'content': 'A dashboard for a database of Wesnoth multiplayer games.'}
+            {
+                'name': 'description',
+                'content': 'A dashboard for a database of Wesnoth multiplayer games.'
+            }
         ]
     )
 
