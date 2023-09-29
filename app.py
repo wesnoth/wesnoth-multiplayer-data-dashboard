@@ -111,7 +111,7 @@ def create_app_layout(column_names):
             html.Div(
                 children=[
                     dcc.Markdown(
-                        "This Dashboard is a Single Page Application that uses [Plotly Dash](https://plotly.com/dash/) and [pandas](https://pandas.pydata.org/).",
+                        "This Dashboard is a Single Page Application that uses [Plotly](https://plotly.com//) and [pandas](https://pandas.pydata.org/).",
                         id="plotly-dash-credit"
                     ),
                     dcc.Link(
