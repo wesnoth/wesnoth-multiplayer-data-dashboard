@@ -68,18 +68,16 @@ def create_app_layout(column_names):
             html.Div(
                 id='content-container',
                 children=[
-                    dbc.Row([
-                        dbc.Container(
-                            id='date-picker-container',
-                            children=[
-                                html.Label(
-                                    id="date-picker-label",
-                                    children="Specify a Date Range"
-                                ),
-                                dcc.DatePickerRange(id='date-picker')
-                            ]
-                        )
-                    ]),
+                    html.Div(
+                        id='date-picker-container',
+                        children=[
+                            html.Label(
+                                id="date-picker-label",
+                                children="Specify a Date Range"
+                            ),
+                            dcc.DatePickerRange(id='date-picker')
+                        ]
+                    ),
                     dbc.Row([
                         dcc.Loading(
                             dash_table.DataTable(
@@ -102,26 +100,27 @@ def create_app_layout(column_names):
                             ),
                         )
                     ]),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.H5("Total Number of Games",
+                                            className="card-title"),
+                                    html.P(id="total-games-value",
+                                        className="card-text"),
+                                ]
+                            ),
+                            className="shadow-sm mb-4 bg-white rounded",
+                            id='total-games-card'
+                        ),
+                    ),
                     html.Div(
                         dcc.Loading([
                             dbc.Row([
                                 dbc.Col(
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            [
-                                                html.H5("Total Number of Games", className="card-title"),
-                                                html.P(id="total-games-value", className="card-text"),
-                                            ]
-                                        ),
-                                        className="shadow-sm mb-4 bg-white rounded",
-                                        id='total-games-card'
-                                    ),
-                                    width=2
-                                ),
-                                dbc.Col(
                                     id='histogram-container',
-                                    children=[dcc.Graph(id='game-duration-histogram')],
-                                    width=10
+                                    children=[
+                                        dcc.Graph(id='game-duration-histogram')],
                                 )
                             ]),
                             html.Div(
@@ -192,7 +191,6 @@ def update_table(start_date, end_date):
     cursor.close()
     mariadb_connection.close()
     return df.to_dict('records')
-
 
 
 @callback(
