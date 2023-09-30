@@ -104,11 +104,26 @@ def create_app_layout(column_names):
                     ]),
                     html.Div(
                         dcc.Loading([
-                            html.Div(
-                                id='histogram-container',
-                                children=[
-                                    dcc.Graph(id='game-duration-histogram')],
-                            ),
+                            dbc.Row([
+                                dbc.Col(
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            [
+                                                html.H5("Total Number of Games", className="card-title"),
+                                                html.P(id="total-games-value", className="card-text"),
+                                            ]
+                                        ),
+                                        className="shadow-sm mb-4 bg-white rounded",
+                                        id='total-games-card'
+                                    ),
+                                    width=2
+                                ),
+                                dbc.Col(
+                                    id='histogram-container',
+                                    children=[dcc.Graph(id='game-duration-histogram')],
+                                    width=10
+                                )
+                            ]),
                             html.Div(
                                 id='donut-charts-container',
                                 children=[
@@ -179,25 +194,43 @@ def update_table(start_date, end_date):
     return df.to_dict('records')
 
 
+
 @callback(
     Output('instance_version-chart', 'figure'),
-    Output('oos-chart', 'figure'),
-    Output('reload-chart', 'figure'),
-    Output('observers-chart', 'figure'),
-    Output('password-chart', 'figure'),
-    Output('public-chart', 'figure'),
-    Output('game-duration-histogram', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
     prevent_initial_call=True
 )
-def update_charts(data, columns):
+def update_instance_version_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     instance_version_value_counts = (
         df['INSTANCE_VERSION']
         .value_counts()
         .to_frame()
     )
+    figure = px.pie(
+        instance_version_value_counts,
+        names=instance_version_value_counts.index,
+        values=instance_version_value_counts['count'],
+        title='Wesnoth Instance Version',
+        hole=0.7,
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
+    return figure
+
+
+@callback(
+    Output('oos-chart', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+    prevent_initial_call=True
+)
+def update_oos_chart(data, columns):
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     oos_value_counts = (
         df['OOS']
         .replace({
@@ -207,6 +240,29 @@ def update_charts(data, columns):
         .value_counts()
         .to_frame()
     )
+    figure = px.pie(
+        oos_value_counts,
+        names=oos_value_counts.index,
+        values=oos_value_counts['count'],
+        title='Games with Out-of-Sync Errors',
+        hole=0.7,
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
+    return figure
+
+
+@callback(
+    Output('reload-chart', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+    prevent_initial_call=True
+)
+def update_reload_chart(data, columns):
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     reload_value_counts = (
         df['RELOAD']
         .replace({
@@ -216,6 +272,29 @@ def update_charts(data, columns):
         .value_counts()
         .to_frame()
     )
+    figure = px.pie(
+        reload_value_counts,
+        names=reload_value_counts.index,
+        values=reload_value_counts['count'],
+        title='Reloaded Games',
+        hole=0.7,
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
+    return figure
+
+
+@callback(
+    Output('observers-chart', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+    prevent_initial_call=True
+)
+def update_observers_chart(data, columns):
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     observers_value_counts = (
         df['OBSERVERS']
         .replace({
@@ -225,6 +304,29 @@ def update_charts(data, columns):
         .value_counts()
         .to_frame()
     )
+    figure = px.pie(
+        observers_value_counts,
+        names=observers_value_counts.index,
+        values=observers_value_counts['count'],
+        title='Games that Allow Observers',
+        hole=0.7,
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
+    return figure
+
+
+@callback(
+    Output('password-chart', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+    prevent_initial_call=True
+)
+def update_password_chart(data, columns):
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     password_value_counts = (
         df['PASSWORD']
         .replace({
@@ -234,6 +336,29 @@ def update_charts(data, columns):
         .value_counts()
         .to_frame()
     )
+    figure = px.pie(
+        password_value_counts,
+        names=password_value_counts.index,
+        values=password_value_counts['count'],
+        title='Games Requiring a Password to Join',
+        hole=0.7,
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
+    return figure
+
+
+@callback(
+    Output('public-chart', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+    prevent_initial_call=True
+)
+def update_public_chart(data, columns):
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     public_value_counts = (
         df['PUBLIC']
         .replace({
@@ -243,67 +368,55 @@ def update_charts(data, columns):
         .value_counts()
         .to_frame()
     )
-    figures = (
-        px.pie(
-            instance_version_value_counts,
-            names=instance_version_value_counts.index,
-            values=instance_version_value_counts['count'],
-            title='Wesnoth Instance Version',
-            hole=0.7,
-        ),
-        px.pie(
-            oos_value_counts,
-            names=oos_value_counts.index,
-            values=oos_value_counts['count'],
-            title='Games with Out-of-Sync Errors',
-            hole=0.7,
-        ),
-        px.pie(
-            reload_value_counts,
-            names=reload_value_counts.index,
-            values=reload_value_counts['count'],
-            title='Reloaded Games',
-            hole=0.7,
-        ),
-        px.pie(
-            observers_value_counts,
-            names=observers_value_counts.index,
-            values=observers_value_counts['count'],
-            title='Games that Allow Observers',
-            hole=0.7,
-        ),
-        px.pie(
-            password_value_counts,
-            names=password_value_counts.index,
-            values=password_value_counts['count'],
-            title='Games Requiring a Password to Join',
-            hole=0.7,
-        ),
-        px.pie(
-            public_value_counts,
-            names=public_value_counts.index,
-            values=public_value_counts['count'],
-            title='Games with a Public Replay File',
-            hole=0.7,
-        ),
-        px.histogram(
-            df,
-            x='GAME_DURATION',
-            title='Game Duration (minutes)',
-            labels={'GAME_DURATION': 'Duration (minutes)'},
-            histnorm='percent',
-        ).update_traces(
-            marker_line_width=1,
-            marker_line_color="white"
+    figure = px.pie(
+        public_value_counts,
+        names=public_value_counts.index,
+        values=public_value_counts['count'],
+        title='Games with a Public Replay File',
+        hole=0.7,
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
         )
     )
-    for figure in figures:
-        figure.update_layout(
-            hoverlabel=dict(
-                bgcolor="white",
-            )
+    return figure
+
+
+@callback(
+    Output('game-duration-histogram', 'figure'),
+    Input('table', 'data'),
+    Input('table', 'columns'),
+    prevent_initial_call=True
+)
+def update_game_duration_histogram(data, columns):
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
+    figure = px.histogram(
+        df,
+        x='GAME_DURATION',
+        title='Game Duration (minutes)',
+        labels={'GAME_DURATION': 'Duration (minutes)'},
+        histnorm='percent',
+    ).update_traces(
+        marker_line_width=1,
+        marker_line_color="white"
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
         )
-    return figures
+    )
+    return figure
+
+
+@callback(
+    Output('total-games-value', 'children'),
+    Input('table', 'data'),
+    prevent_initial_call=True
+)
+def update_total_games_value(data):
+    df = pd.DataFrame(data)
+    return df.shape[0]
 
 
 if __name__ == '__main__':
