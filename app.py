@@ -102,108 +102,123 @@ def create_app_layout(column_names):
                     ]),
                     dbc.Col(
                         dbc.Card(
-                            dbc.CardBody(
-                                [
+                            dcc.Loading(
+                                dbc.CardBody([
                                     html.H5("Total Number of Games",
                                             className="card-title"),
                                     html.P(id="total-games-value",
-                                           className="card-text"),
-                                ]
+                                            className="card-text"),
+                                ])
                             ),
                             className="shadow-sm mb-4 bg-white rounded mt-4",
                             id='total-games-card'
                         ),
                         lg=3,
                     ),
-                    html.Div(
-                        dcc.Loading([
-                            dbc.Row([
-                                dbc.Col(
-                                    id='histogram-container',
-                                    children=[
-                                        dbc.Card(
+                    html.Div([
+                        dbc.Row([
+                            dbc.Col(
+                                id='histogram-container',
+                                children=[
+                                    dbc.Card(
+                                        dcc.Loading(
                                             dbc.CardBody(
                                                 dcc.Graph(
                                                     id='game-duration-histogram')
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        )
-                                    ],
-                                )
-                            ]),
-                            html.Div(
-                                id='donut-charts-container',
-                                children=[
-                                    dbc.Row([
-                                        dbc.Col(
-                                            dbc.Card(
+                                            )
+                                        ),
+                                        className="shadow-sm mb-4 bg-white rounded",
+                                    )
+                                ],
+                            )
+                        ]),
+                        html.Div(
+                            id='donut-charts-container',
+                            children=[
+                                dbc.Row([
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dcc.Loading(
                                                 dbc.CardBody(
                                                     dcc.Graph(
                                                         id='instance_version-chart')
-                                                ),
-                                                className="shadow-sm mb-4 bg-white rounded",
+                                                )
                                             ),
-                                            sm=12,
-                                            lg=4
+                                            className="shadow-sm mb-4 bg-white rounded",
                                         ),
-                                        dbc.Col(
-                                            dbc.Card(
+                                        sm=12,
+                                        lg=4
+                                    ),
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dcc.Loading(
                                                 dbc.CardBody(
                                                     dcc.Graph(id='oos-chart')
-                                                ),
-                                                className="shadow-sm mb-4 bg-white rounded",
+                                                )
                                             ),
-                                            sm=12,
-                                            lg=4
+                                            className="shadow-sm mb-4 bg-white rounded",
                                         ),
-                                        dbc.Col(
-                                            dbc.Card(
+                                        sm=12,
+                                        lg=4
+                                    ),
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dcc.Loading(
                                                 dbc.CardBody(
                                                     dcc.Graph(
                                                         id='reload-chart')
-                                                ),
-                                                className="shadow-sm mb-4 bg-white rounded",
+                                                )
                                             ),
-                                            sm=12,
-                                            lg=4
+                                            className="shadow-sm mb-4 bg-white rounded",
                                         ),
-                                    ]),
-                                    dbc.Row([
-                                        dbc.Col(
-                                            dbc.Card(
+                                        sm=12,
+                                        lg=4
+                                    ),
+                                ]),
+                                dbc.Row([
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dcc.Loading(
                                                 dbc.CardBody(
                                                     dcc.Graph(
                                                         id='observers-chart')
-                                                ),
-                                                className="shadow-sm mb-4 bg-white rounded",
+                                                )
                                             ),
-                                            sm=12,
-                                            lg=4),
-                                        dbc.Col(
-                                            dbc.Card(
+                                            className="shadow-sm mb-4 bg-white rounded",
+                                        ),
+                                        sm=12,
+                                        lg=4
+                                    ),
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dcc.Loading(
                                                 dbc.CardBody(
                                                     dcc.Graph(
                                                         id='password-chart')
-                                                ),
-                                                className="shadow-sm mb-4 bg-white rounded",
+                                                )
                                             ),
-                                            sm=12,
-                                            lg=4),
-                                        dbc.Col(
-                                            dbc.Card(
+                                            className="shadow-sm mb-4 bg-white rounded",
+                                        ),
+                                        sm=12,
+                                        lg=4
+                                    ),
+                                    dbc.Col(
+                                        dbc.Card(
+                                            dcc.Loading(
                                                 dbc.CardBody(
                                                     dcc.Graph(
                                                         id='public-chart')
-                                                ),
-                                                className="shadow-sm mb-4 bg-white rounded",
+                                                )
                                             ),
-                                            sm=12,
-                                            lg=4),
-                                    ]),
-                                ],
-                            ),
-                        ])
-                    )
+                                            className="shadow-sm mb-4 bg-white rounded",
+                                        ),
+                                        sm=12,
+                                        lg=4
+                                    ),
+                                ]),
+                            ],
+                        ),
+                    ])
                 ]
             ),
             html.Footer(
