@@ -12,24 +12,6 @@
     padding: 0 15px;
 }
 
-@media (min-width: 768px) {
-    #content-container {
-        padding: 0 1.5rem;
-    }
-}
-
-@media (min-width: 992px) {
-    #content-container {
-        padding: 0 2rem;
-    }
-}
-
-@media (min-width: 1200px) {
-    #content-container {
-        padding: 0 2.5rem;
-    }
-}
-
 
 /* Title Container */
 #title-container {
@@ -66,30 +48,6 @@ h1 {
 
 .DateInput_input_1 {
     font-size: 16px;
-}
-
-
-/* Donut Charts Section */
-@media (min-width: 992px) {
-    #donut-charts-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-    }
-}
-
-@media (max-width: 991px) {
-    #donut-charts-container * {
-        margin-bottom: 20px;
-    }
-}
-
-
-/* Histogram Section */
-#histogram-container {
-    margin-bottom: 20px;
 }
 
 
