@@ -69,4 +69,9 @@ h1 {
 
 #plotly-dash-credit a {
     color: whitesmoke;
+    text-decoration: none;
+}
+
+#plotly-dash-credit a:hover {
+    text-decoration: underline;
 }

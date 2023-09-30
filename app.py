@@ -58,6 +58,9 @@ def create_app():
 
 
 def create_app_layout(column_names):
+    with open('./assets/footer_technology_stack.md', 'r') as file:
+        footer_technology_stack_markdown = file.read()
+
     layout = html.Div(
         id='top-level-container',
         children=[
@@ -107,7 +110,7 @@ def create_app_layout(column_names):
                                     html.H5("Total Number of Games",
                                             className="card-title"),
                                     html.P(id="total-games-value",
-                                            className="card-text"),
+                                           className="card-text"),
                                 ])
                             ),
                             className="shadow-sm mb-4 bg-white rounded mt-4",
@@ -227,7 +230,8 @@ def create_app_layout(column_names):
                     children=[
                         dcc.Markdown(
                             id="plotly-dash-credit",
-                            children="This Dashboard is a Single Page Application that uses [Plotly](https://plotly.com//) and [pandas](https://pandas.pydata.org/).",
+                            children=footer_technology_stack_markdown,
+                            link_target="_blank",
                         ),
                         dbc.Button(
                             id="download-link",
@@ -497,7 +501,7 @@ def update_game_duration_histogram(data, columns):
 )
 def update_total_games_value(data):
     df = pd.DataFrame(data)
-    return '{:,}'.format(df.shape[0])
+    return f"{df.shape[0]:,}"
 
 
 if __name__ == '__main__':
