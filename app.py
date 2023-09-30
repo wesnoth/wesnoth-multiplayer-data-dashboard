@@ -110,7 +110,7 @@ def create_app_layout(column_names):
                                            className="card-text"),
                                 ]
                             ),
-                            className="shadow-sm mb-4 bg-white rounded",
+                            className="shadow-sm mb-4 bg-white rounded mt-4",
                             id='total-games-card'
                         ),
                         lg=3,
@@ -482,7 +482,7 @@ def update_game_duration_histogram(data, columns):
 )
 def update_total_games_value(data):
     df = pd.DataFrame(data)
-    return df.shape[0]
+    return '{:,}'.format(df.shape[0])
 
 
 if __name__ == '__main__':
