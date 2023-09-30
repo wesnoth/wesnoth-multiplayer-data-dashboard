@@ -1,9 +1,13 @@
-/* This file contains custom style overrides for the Wesnoth MP Database Dashboard.
-The CSS Rules here are prioritized over the CSS Rules in other imported CSS files,
-such as the ones specified in the Dash app's external stylesheets.*/
+/* This file contains custom style overrides for the Wesnoth MP Database Dashboard. */
 
 
-/* Main Container */
+/* Top Level Container */
+#top-level-container {
+    background: linear-gradient(to right, #e7d9c0, rgba(231, 217, 192, 0) 5%), linear-gradient(to left, #e7d9c0, #f3ead8 5%)
+}
+
+
+/* Content Container */
 #content-container {
     padding: 0 15px;
 }
@@ -26,6 +30,8 @@ such as the ones specified in the Dash app's external stylesheets.*/
     }
 }
 
+
+/* Title Container */
 #title-container {
     background: linear-gradient(to right, #0f1421, #161e31, #0f1421);
     margin-bottom: 0px;
@@ -38,6 +44,7 @@ such as the ones specified in the Dash app's external stylesheets.*/
 h1 {
     color: #b48648;
     padding: 10px;
+    font-family: Montaga, Junicode, "Times New Roman", serif;
 }
 
 
@@ -85,7 +92,8 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Footer */
+
+/* Footer Section */
 #footer-container {
     background: linear-gradient(to right, #0f1421, #161e31, #0f1421);
     margin-top: 40px;
@@ -97,28 +105,10 @@ h1 {
 
 #plotly-dash-credit {
     font-size: 14p;
-    font-style: italic;
     margin-top: 10px;
     display: inline;
 }
 
 #plotly-dash-credit a {
     color: whitesmoke;
-}
-
-#github-link {
-    display: inline-block !important;
-    padding: 10px !important;
-    background-color: #8A2BE2 !important;
-    color: white !important;
-    border-radius: 5px !important;
-    text-decoration: none !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4) !important;
-}
-
-#github-link:hover {
-    background-color: #4B0082 !important;
 }

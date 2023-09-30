@@ -28,8 +28,8 @@ def create_app():
     app = Dash(
         __name__,
         external_stylesheets=[
-            "https://www.wesnoth.org/wesmere/css/wesmere-1.1.10.css",
-            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
+            dbc.themes.BOOTSTRAP
         ],
         title="Wesnoth Multiplayer Dashboard",
         meta_tags=[
@@ -58,87 +58,96 @@ def create_app():
 
 
 def create_app_layout(column_names):
-    layout = dbc.Container([
-        dbc.Container(
-            html.H1("Wesnoth Multiplayer Dashboard"),
-            className='mt-4',
-            id='title-container'
-        ),
-        dbc.Container([
-            dbc.Row([
-                dbc.Container([
-                    html.Label("Specify a Date Range",
-                               id="date-picker-label"),
-                    dcc.DatePickerRange(id='date-picker')
-                ], id='date-picker-container')
-            ]),
-            dbc.Row([
-                dcc.Loading(
-                    children=dash_table.DataTable(
-                        id='table',
-                        columns=[{"name": column, "id": column}
-                                 for column in column_names],
-                        editable=True,
-                        filter_action="native",
-                        sort_action="native",
-                        sort_mode="multi",
-                        column_selectable="single",
-                        row_selectable="multi",
-                        row_deletable=True,
-                        selected_columns=[],
-                        selected_rows=[],
-                        page_action="native",
-                        page_current=0,
-                        page_size=10,
-                        style_table={'overflowX': 'auto'}
-                    ),
-                )
-            ]),
-            dbc.Container(
-                children=dcc.Loading(
-                    children=[
-                        dbc.Container(
-                            children=[dcc.Graph(id='game-duration-histogram')],
-                            id='histogram-container'
-                        ),
-                        dbc.Container(
-                            children=[
-                                dcc.Graph(id='instance_version-chart'),
-                                dcc.Graph(id='oos-chart'),
-                                dcc.Graph(id='reload-chart'),
-                                dcc.Graph(id='observers-chart'),
-                                dcc.Graph(id='password-chart'),
-                                dcc.Graph(id='public-chart'),
-                            ],
-                            id='donut-charts-container',
-                        ),
-                    ]
-                )
-            )
-        ], id='content-container'),
-        html.Footer(
+    layout = html.Div(
+        id='top-level-container',
+        children=[
             html.Div(
+                id='title-container',
+                children=html.H1("Wesnoth Multiplayer Dashboard")
+            ),
+            html.Div(
+                id='content-container',
                 children=[
-                    dcc.Markdown(
-                        "This Dashboard is a Single Page Application that uses [Plotly](https://plotly.com//) and [pandas](https://pandas.pydata.org/).",
-                        id="plotly-dash-credit"
-                    ),
-                    dcc.Link(
-                        html.Div([
-                            html.I(className="fa fa-github"),
-                            "  View Source Code on GitHub ",
-                            html.I(className="fa fa-external-link"),
-                        ]),
-                        href="#",
-                        target="_blank",
-                        id="github-link",
-                    ),
-                ],
-                className='text-center',
-                id='footer-container'
+                    dbc.Row([
+                        dbc.Container(
+                            id='date-picker-container',
+                            children=[
+                                html.Label(
+                                    id="date-picker-label",
+                                    children="Specify a Date Range"
+                                ),
+                                dcc.DatePickerRange(id='date-picker')
+                            ]
+                        )
+                    ]),
+                    dbc.Row([
+                        dcc.Loading(
+                            dash_table.DataTable(
+                                id='table',
+                                columns=[{"name": column, "id": column}
+                                         for column in column_names],
+                                editable=True,
+                                filter_action="native",
+                                sort_action="native",
+                                sort_mode="multi",
+                                column_selectable="single",
+                                row_selectable="multi",
+                                row_deletable=True,
+                                selected_columns=[],
+                                selected_rows=[],
+                                page_action="native",
+                                page_current=0,
+                                page_size=10,
+                                style_table={'overflowX': 'auto'}
+                            ),
+                        )
+                    ]),
+                    html.Div(
+                        dcc.Loading([
+                            html.Div(
+                                id='histogram-container',
+                                children=[
+                                    dcc.Graph(id='game-duration-histogram')],
+                            ),
+                            html.Div(
+                                id='donut-charts-container',
+                                children=[
+                                    dcc.Graph(id='instance_version-chart'),
+                                    dcc.Graph(id='oos-chart'),
+                                    dcc.Graph(id='reload-chart'),
+                                    dcc.Graph(id='observers-chart'),
+                                    dcc.Graph(id='password-chart'),
+                                    dcc.Graph(id='public-chart'),
+                                ],
+                            ),
+                        ])
+                    )
+                ]
+            ),
+            html.Footer(
+                id='footer-container',
+                children=html.Div(
+                    children=[
+                        dcc.Markdown(
+                            id="plotly-dash-credit",
+                            children="This Dashboard is a Single Page Application that uses [Plotly](https://plotly.com//) and [pandas](https://pandas.pydata.org/).",
+                        ),
+                        dbc.Button(
+                            id="download-link",
+                            children=html.Div([
+                                html.I(className="fa fa-github"),
+                                "  View Source Code on GitHub ",
+                                html.I(className="fa fa-external-link"),
+                            ]),
+                            color="primary",
+                            href="#",
+                            target="_blank",
+                        )
+                    ],
+                )
             )
-        )
-    ])
+        ]
+    )
     return layout
 
 
