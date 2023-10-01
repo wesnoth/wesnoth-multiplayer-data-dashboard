@@ -133,7 +133,7 @@ def create_app_layout(column_names):
                             className="shadow-sm mb-4 bg-white rounded mt-4",
                             id='total-games-card'
                         ),
-                        lg=3,
+                        lg=2,
                     ),
                     html.Div([
                         dbc.Row([
@@ -156,13 +156,16 @@ def create_app_layout(column_names):
                             id='donut-charts-container',
                             children=[
                                 dbc.Row([
-                                    create_donut_chart_column('instance_version-chart'),
+                                    create_donut_chart_column(
+                                        'instance_version-chart'),
                                     create_donut_chart_column('oos-chart'),
                                     create_donut_chart_column('reload-chart'),
                                 ]),
                                 dbc.Row([
-                                    create_donut_chart_column('observers-chart'),
-                                    create_donut_chart_column('password-chart'),
+                                    create_donut_chart_column(
+                                        'observers-chart'),
+                                    create_donut_chart_column(
+                                        'password-chart'),
                                     create_donut_chart_column('public-chart'),
                                 ]),
                             ],
@@ -454,16 +457,14 @@ def main():
     """
     If you are running this file directly, it is implied that you are developing.
     Place anything that you want to be executed or set only when developing the app here.
-    """
 
-    # Enable debug logs.
+    Enables debug logs and runs the app in debug mode. Shows full error tracebacks in the console by setting dev_tools_prune_errors to False.
+    """
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-
-    # Run the app in debug mode and show full error tracebacks in the console by setting dev_tools_prune_errors to False.
     app = create_app()
     app.run(debug=True, dev_tools_prune_errors=False)
 
