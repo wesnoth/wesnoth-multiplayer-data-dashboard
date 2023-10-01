@@ -28,8 +28,8 @@ def create_app():
     app = Dash(
         __name__,
         external_stylesheets=[
-            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
-            dbc.themes.BOOTSTRAP
+            dbc.themes.BOOTSTRAP,
+            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
         ],
         title="Wesnoth Multiplayer Dashboard",
         meta_tags=[
@@ -58,8 +58,25 @@ def create_app():
 
 
 def create_app_layout(column_names):
-    with open('./assets/footer_technology_stack.md', 'r') as file:
+    with open('./assets/markdown/footer_technology_stack.md', 'r') as file:
         footer_technology_stack_markdown = file.read()
+
+    def create_donut_chart_column(figure_id):
+        donut_column = dbc.Col(
+            dbc.Card(
+                dcc.Loading(
+                    dbc.CardBody(
+                        dcc.Graph(
+                            id=figure_id
+                        )
+                    )
+                ),
+                className="shadow-sm mb-4 bg-white rounded",
+            ),
+            sm=12,
+            lg=4
+        )
+        return donut_column
 
     layout = html.Div(
         id='top-level-container',
@@ -139,85 +156,14 @@ def create_app_layout(column_names):
                             id='donut-charts-container',
                             children=[
                                 dbc.Row([
-                                    dbc.Col(
-                                        dbc.Card(
-                                            dcc.Loading(
-                                                dbc.CardBody(
-                                                    dcc.Graph(
-                                                        id='instance_version-chart')
-                                                )
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        ),
-                                        sm=12,
-                                        lg=4
-                                    ),
-                                    dbc.Col(
-                                        dbc.Card(
-                                            dcc.Loading(
-                                                dbc.CardBody(
-                                                    dcc.Graph(id='oos-chart')
-                                                )
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        ),
-                                        sm=12,
-                                        lg=4
-                                    ),
-                                    dbc.Col(
-                                        dbc.Card(
-                                            dcc.Loading(
-                                                dbc.CardBody(
-                                                    dcc.Graph(
-                                                        id='reload-chart')
-                                                )
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        ),
-                                        sm=12,
-                                        lg=4
-                                    ),
+                                    create_donut_chart_column('instance_version-chart'),
+                                    create_donut_chart_column('oos-chart'),
+                                    create_donut_chart_column('reload-chart'),
                                 ]),
                                 dbc.Row([
-                                    dbc.Col(
-                                        dbc.Card(
-                                            dcc.Loading(
-                                                dbc.CardBody(
-                                                    dcc.Graph(
-                                                        id='observers-chart')
-                                                )
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        ),
-                                        sm=12,
-                                        lg=4
-                                    ),
-                                    dbc.Col(
-                                        dbc.Card(
-                                            dcc.Loading(
-                                                dbc.CardBody(
-                                                    dcc.Graph(
-                                                        id='password-chart')
-                                                )
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        ),
-                                        sm=12,
-                                        lg=4
-                                    ),
-                                    dbc.Col(
-                                        dbc.Card(
-                                            dcc.Loading(
-                                                dbc.CardBody(
-                                                    dcc.Graph(
-                                                        id='public-chart')
-                                                )
-                                            ),
-                                            className="shadow-sm mb-4 bg-white rounded",
-                                        ),
-                                        sm=12,
-                                        lg=4
-                                    ),
+                                    create_donut_chart_column('observers-chart'),
+                                    create_donut_chart_column('password-chart'),
+                                    create_donut_chart_column('public-chart'),
                                 ]),
                             ],
                         ),
@@ -504,7 +450,7 @@ def update_total_games_value(data):
     return f"{df.shape[0]:,}"
 
 
-if __name__ == '__main__':
+def main():
     """
     If you are running this file directly, it is implied that you are developing.
     Place anything that you want to be executed or set only when developing the app here.
@@ -520,3 +466,7 @@ if __name__ == '__main__':
     # Run the app in debug mode and show full error tracebacks in the console by setting dev_tools_prune_errors to False.
     app = create_app()
     app.run(debug=True, dev_tools_prune_errors=False)
+
+
+if __name__ == '__main__':
+    main()
