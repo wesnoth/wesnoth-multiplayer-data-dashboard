@@ -1,6 +1,6 @@
 import pytest
 from dash.exceptions import PreventUpdate
-from pandas import Timestamp
+from pandas import Timestamp, NaT, isna
 
 from app import update_table
 
@@ -67,7 +67,7 @@ class TestUpdateTable:
                 'OBSERVERS': 1,
                 'PASSWORD': 1,
                 'PUBLIC': 1,
-                'GAME_DURATION': 3
+                'GAME_DURATION': 3  # the unit is in minutes
             }
         ]
 
@@ -76,6 +76,39 @@ class TestUpdateTable:
 
         # Assert
         assert table_data == expected_table_data
+
+
+    def test_null_start_and_end_times_results_in_a_null_game_duration(self, mocker):
+        # Patch the database connection and cursor
+        mock_connect_to_mariadb = mocker.patch('app.connect_to_mariadb')
+        mock_connection = mocker.Mock()
+        mock_cursor = mocker.Mock()
+        mock_connect_to_mariadb.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+        mock_cursor.execute.return_value = None
+
+        # Fake schema
+        mock_cursor.description = [
+            ('START_TIME', None),
+            ('END_TIME', None),
+        ]
+
+        # Fake data
+        mock_cursor.fetchall.return_value = [(
+            NaT,
+            NaT,
+        )]
+
+        # Query date range
+        start_date = '2022-02-01'
+        end_date = '2022-02-28'
+
+        # Act
+        table_data = update_table(start_date, end_date)
+
+        # Assert
+        assert isna(table_data[0]['GAME_DURATION'])
+
 
     @pytest.mark.parametrize(
         "start_date, end_date",
