@@ -90,7 +90,7 @@ def create_app_layout(column_names):
             html.Div(
                 id='title-container',
                 children=[
-                    html.H1("Wesnoth Multiplayer Dashboard"),
+                    html.H1("Wesnoth Multiplayer Data"),
                     dbc.Button(
                         children=[
                             html.I(className="fa fa-question-circle"),
