@@ -6,7 +6,8 @@ import dash_bootstrap_components as dbc
 import mariadb
 import pandas as pd
 import plotly.express as px
-from dash import Dash, Input, Output, callback, dash_table, dcc, html
+from dash import Dash, Input, Output, State, callback, dash_table, dcc, html
+from dash.exceptions import PreventUpdate
 
 
 def connect_to_mariadb():
@@ -58,8 +59,13 @@ def create_app():
 
 
 def create_app_layout(column_names):
+
+    # Read contents of Markdown files
     with open('./assets/markdown/footer_technology_stack.md', 'r') as file:
         footer_technology_stack_markdown = file.read()
+    
+    with open('./assets/markdown/user_guide.md', 'r') as file:
+        user_guide_markdown = file.read()
 
     def create_donut_chart_column(figure_id):
         donut_column = dbc.Col(
@@ -83,7 +89,33 @@ def create_app_layout(column_names):
         children=[
             html.Div(
                 id='title-container',
-                children=html.H1("Wesnoth Multiplayer Dashboard")
+                children=[
+                    html.H1("Wesnoth Multiplayer Dashboard"),
+                    dbc.Button(
+                        children=[
+                            html.I(className="fa fa-question-circle"),
+                            "  User Guide"
+                        ],
+                        color="primary",
+                        id='user-guide-button',
+                        n_clicks=0
+                    ),
+                    dbc.Modal(
+                        [
+                            dbc.ModalHeader(dbc.ModalTitle("User Guide")),
+                            dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
+                            dbc.ModalFooter(
+                                dbc.Button(
+                                    "Close", id="close", className="ms-auto", n_clicks=0
+                                )
+                            ),
+                        ],
+                        id="modal",
+                        is_open=False,
+                        size="xl",
+                    ),
+                ],
+                className="d-flex align-items-center justify-content-between"
             ),
             html.Div(
                 id='content-container',
@@ -109,14 +141,12 @@ def create_app_layout(column_names):
                                 sort_action="native",
                                 sort_mode="multi",
                                 column_selectable="single",
-                                row_selectable="multi",
                                 row_deletable=True,
-                                selected_columns=[],
-                                selected_rows=[],
                                 page_action="native",
                                 page_current=0,
                                 page_size=10,
-                                style_table={'overflowX': 'auto'}
+                                style_table={'overflowX': 'auto'},
+                                export_format="csv",
                             ),
                         )
                     ]),
@@ -205,8 +235,13 @@ def create_app_layout(column_names):
     Output('table', 'data'),
     Input('date-picker', 'start_date'),
     Input('date-picker', 'end_date'),
+    prevent_initial_call=True
 )
 def update_table(start_date, end_date):
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        raise PreventUpdate
+
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
     cursor.execute(
@@ -223,9 +258,9 @@ def update_table(start_date, end_date):
                 x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
         )
     )
-    logging.debug(df.info())
     cursor.close()
     mariadb_connection.close()
+    logging.debug('Fetched data for table from database')
     return df.to_dict('records')
 
 
@@ -233,7 +268,6 @@ def update_table(start_date, end_date):
     Output('instance_version-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_instance_version_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -261,7 +295,6 @@ def update_instance_version_chart(data, columns):
     Output('oos-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_oos_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -293,7 +326,6 @@ def update_oos_chart(data, columns):
     Output('reload-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_reload_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -325,7 +357,6 @@ def update_reload_chart(data, columns):
     Output('observers-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_observers_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -357,7 +388,6 @@ def update_observers_chart(data, columns):
     Output('password-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_password_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -389,7 +419,6 @@ def update_password_chart(data, columns):
     Output('public-chart', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_public_chart(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -421,7 +450,6 @@ def update_public_chart(data, columns):
     Output('game-duration-histogram', 'figure'),
     Input('table', 'data'),
     Input('table', 'columns'),
-    prevent_initial_call=True
 )
 def update_game_duration_histogram(data, columns):
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
@@ -446,11 +474,22 @@ def update_game_duration_histogram(data, columns):
 @callback(
     Output('total-games-value', 'children'),
     Input('table', 'data'),
-    prevent_initial_call=True
 )
 def update_total_games_value(data):
     df = pd.DataFrame(data)
     return f"{df.shape[0]:,}"
+
+
+@callback(
+    Output("modal", "is_open"),
+    Input("user-guide-button", "n_clicks"),
+    Input("close", "n_clicks"),
+    State("modal", "is_open"),
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 
 def main():
@@ -459,6 +498,7 @@ def main():
     Place anything that you want to be executed or set only when developing the app here.
 
     Enables debug logs and runs the app in debug mode. Shows full error tracebacks in the console by setting dev_tools_prune_errors to False.
+    The app is served at port 8050 of 127.0.0.1 (localhost) by a development server.
     """
     logging.basicConfig(
         level=logging.DEBUG,

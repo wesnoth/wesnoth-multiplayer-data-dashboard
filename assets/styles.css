@@ -17,7 +17,7 @@
 #title-container {
     background: linear-gradient(to right, #0f1421, #161e31, #0f1421);
     margin-bottom: 0px;
-    padding: 0px;
+    padding: 10px;
     border-bottom: #b48648 1px solid;
     box-shadow: 0px 1px 4px 0px #000;
     margin-bottom: 20px;
@@ -25,8 +25,8 @@
 
 h1 {
     color: #b48648;
-    padding: 10px;
     font-family: Montaga, Junicode, "Times New Roman", serif;
+    margin-bottom: 0;
 }
 
 
@@ -48,6 +48,31 @@ h1 {
 
 .DateInput_input_1 {
     font-size: 16px;
+}
+
+/* Table */
+#table button {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+#table button:hover {
+    background-color: #0b5ed7;
+    border-color: #0b5ed7;
+    color: #fff;
+}
+
+#table button:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+    outline: none;
 }
 
 
