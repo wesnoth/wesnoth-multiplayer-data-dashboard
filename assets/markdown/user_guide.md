@@ -1,6 +1,6 @@
 ### Introduction
 
-This dashboard allows you to query and visualize some of the data that the Wesnoth organization collects about multiplayer games played on the official server.
+This dashboard allows you to query and visualize data that the Wesnoth organization collects about multiplayer games played on the official server.
 
 ### Basic Usage
 
