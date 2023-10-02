@@ -63,7 +63,7 @@ def create_app_layout(column_names):
     # Read contents of Markdown files
     with open('./assets/markdown/footer_technology_stack.md', 'r') as file:
         footer_technology_stack_markdown = file.read()
-    
+
     with open('./assets/markdown/user_guide.md', 'r') as file:
         user_guide_markdown = file.read()
 
@@ -229,6 +229,9 @@ def create_app_layout(column_names):
         ]
     )
     return layout
+
+
+""" Callback functions start here """
 
 
 @callback(
@@ -477,7 +480,7 @@ def update_game_duration_histogram(data, columns):
 )
 def update_total_games_value(data):
     df = pd.DataFrame(data)
-    return f"{df.shape[0]:,}"
+    return f"{len(df):,}"
 
 
 @callback(
@@ -486,10 +489,10 @@ def update_total_games_value(data):
     Input("close", "n_clicks"),
     State("modal", "is_open"),
 )
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+def toggle_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
+    if user_guide_button_clicks or close_button_clicks:
+        return not is_modal_open
+    return is_modal_open
 
 
 def main():
