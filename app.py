@@ -310,7 +310,7 @@ def update_table(start_date, end_date):
 @callback(
     Output('instance_version-chart', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_instance_version_chart(data, columns):
     """
@@ -347,7 +347,7 @@ def update_instance_version_chart(data, columns):
 @callback(
     Output('oos-chart', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_oos_chart(data, columns):
     """
@@ -388,7 +388,7 @@ def update_oos_chart(data, columns):
 @callback(
     Output('reload-chart', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_reload_chart(data, columns):
     """
@@ -429,7 +429,7 @@ def update_reload_chart(data, columns):
 @callback(
     Output('observers-chart', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_observers_chart(data, columns):
     """
@@ -470,7 +470,7 @@ def update_observers_chart(data, columns):
 @callback(
     Output('password-chart', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_password_chart(data, columns):
     """
@@ -511,7 +511,7 @@ def update_password_chart(data, columns):
 @callback(
     Output('public-chart', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_public_chart(data, columns):
     """
@@ -552,7 +552,7 @@ def update_public_chart(data, columns):
 @callback(
     Output('game-duration-histogram', 'figure'),
     Input('table', 'data'),
-    Input('table', 'columns'),
+    State('table', 'columns'),
 )
 def update_game_duration_histogram(data, columns):
     """
