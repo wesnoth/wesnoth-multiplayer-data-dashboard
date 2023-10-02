@@ -26,9 +26,9 @@ pip install -r requirements/development.txt
 
 #### Install and Setup MariaDB
 
-The app fetches raw data from a MariaDB database. For development purposes, you need to install and run your own local MariaDB server instance. A `.sql` file containing a three-day sample from the actual database is provided in [tests/three_days_sample_data.sql](tests/three_days_sample_data.sql). You can use this file to create a local database for the app to read.
+The app fetches raw data from a MariaDB database. For development purposes, you need to install and run your own local MariaDB server instance. A `.sql` file containing a three-day sample from the actual database is provided in [tests/three_days_sample_data.sql](tests/three_days_sample_data.sql). You can use this file to create a local database for the app to read. The definitions of what the tables and columns in the database represent can be found [here](https://github.com/wesnoth/wesnoth/blob/master/utils/mp-server/table_definitions.sql).
 
-1. Install MariaDB.
+1. Install MariaDB. If you are having great difficulty installing MariaDB on your system, you can try [Installing and Using MariaDB via Docker](https://mariadb.com/kb/en/installing-and-using-mariadb-via-docker/)
 2. Log in to MariaDB in a terminal.
 3. Create a database.
 
