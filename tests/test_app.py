@@ -1,8 +1,11 @@
 import pytest
 from dash.exceptions import PreventUpdate
-from pandas import Timestamp, NaT, isna
+from pandas import NaT, Timestamp, isna
 
-from app import update_table
+from app import (toggle_modal, update_game_duration_histogram,
+                 update_instance_version_chart, update_observers_chart,
+                 update_oos_chart, update_password_chart, update_public_chart,
+                 update_reload_chart, update_table, update_total_games_value)
 
 
 class TestUpdateTable:
@@ -77,7 +80,6 @@ class TestUpdateTable:
         # Assert
         assert table_data == expected_table_data
 
-
     def test_null_start_and_end_times_results_in_a_null_game_duration(self, mocker):
         # Patch the database connection and cursor
         mock_connect_to_mariadb = mocker.patch('app.connect_to_mariadb')
@@ -109,7 +111,6 @@ class TestUpdateTable:
         # Assert
         assert isna(table_data[0]['GAME_DURATION'])
 
-
     @pytest.mark.parametrize(
         "start_date, end_date",
         [
@@ -121,3 +122,208 @@ class TestUpdateTable:
     def test_any_missing_dates_raises_prevent_update(self, start_date, end_date):
         with pytest.raises(PreventUpdate):
             update_table(start_date, end_date)
+
+
+def test_update_instance_version_chart_returns_a_pie_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'INSTANCE_VERSION': '1.16', 'RELOAD': 0},
+        {'INSTANCE_VERSION': '1.16', 'RELOAD': 1},
+        {'INSTANCE_VERSION': '1.14', 'RELOAD': 0},
+    ]
+    fake_columns = [
+        {'name': 'INSTANCE_VERSION', 'id': 'INSTANCE_VERSION'},
+        {'name': 'RELOAD', 'id': 'RELOAD'}
+    ]
+    expected_figure_trace_type = 'pie'
+
+    # Act
+    figure = update_instance_version_chart(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+def test_update_oos_chart_returns_a_pie_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'OOS': 0, 'RELOAD': 0},
+        {'OOS': 1, 'RELOAD': 1},
+        {'OOS': 0, 'RELOAD': 0},
+    ]
+    fake_columns = [
+        {'name': 'OOS', 'id': 'OOS'},
+        {'name': 'RELOAD', 'id': 'RELOAD'}
+    ]
+    expected_figure_trace_type = 'pie'
+
+    # Act
+    figure = update_oos_chart(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+def test_update_reload_chart_returns_a_pie_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'RELOAD': 0, 'OOS': 0},
+        {'RELOAD': 1, 'OOS': 1},
+        {'RELOAD': 0, 'OOS': 0},
+    ]
+    fake_columns = [
+        {'name': 'RELOAD', 'id': 'RELOAD'},
+        {'name': 'OOS', 'id': 'OOS'}
+    ]
+    expected_figure_trace_type = 'pie'
+
+    # Act
+    figure = update_reload_chart(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+def test_update_observers_chart_returns_a_pie_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'OBSERVERS': 0, 'RELOAD': 0},
+        {'OBSERVERS': 1, 'RELOAD': 1},
+        {'OBSERVERS': 0, 'RELOAD': 0},
+    ]
+    fake_columns = [
+        {'name': 'OBSERVERS', 'id': 'OBSERVERS'},
+        {'name': 'RELOAD', 'id': 'RELOAD'}
+    ]
+    expected_figure_trace_type = 'pie'
+
+    # Act
+    figure = update_observers_chart(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+def test_update_password_chart_returns_a_pie_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'PASSWORD': 0, 'RELOAD': 0},
+        {'PASSWORD': 1, 'RELOAD': 1},
+        {'PASSWORD': 0, 'RELOAD': 0},
+    ]
+    fake_columns = [
+        {'name': 'PASSWORD', 'id': 'PASSWORD'},
+        {'name': 'RELOAD', 'id': 'RELOAD'}
+    ]
+    expected_figure_trace_type = 'pie'
+
+    # Act
+    figure = update_password_chart(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+def test_update_public_chart_returns_a_pie_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'PUBLIC': 0, 'RELOAD': 0},
+        {'PUBLIC': 1, 'RELOAD': 1},
+        {'PUBLIC': 0, 'RELOAD': 0},
+    ]
+    fake_columns = [
+        {'name': 'PUBLIC', 'id': 'PUBLIC'},
+        {'name': 'RELOAD', 'id': 'RELOAD'}
+    ]
+    expected_figure_trace_type = 'pie'
+
+    # Act
+    figure = update_public_chart(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+def test_update_game_duration_histogram_returns_a_histogram_figure_given_table_columns_and_data():
+    # Arrange
+    fake_data = [
+        {'GAME_DURATION': 3, 'RELOAD': 0},
+        {'GAME_DURATION': 4.57, 'RELOAD': 1},
+        {'GAME_DURATION': 0, 'RELOAD': 0},
+        {'GAME_DURATION': 1.5, 'RELOAD': 0},
+        {'GAME_DURATION': 1000, 'RELOAD': 0},
+    ]
+    fake_columns = [
+        {'name': 'GAME_DURATION', 'id': 'GAME_DURATION'},
+        {'name': 'RELOAD', 'id': 'RELOAD'}
+    ]
+    expected_figure_trace_type = 'histogram'
+
+    # Act
+    figure = update_game_duration_histogram(fake_data, fake_columns)
+
+    # Assert
+    assert figure['data'][0].type == expected_figure_trace_type
+
+
+class TestUpdateTotalGamesValue:
+    def test_returns_table_length_given_table_data(self):
+        # Arrange
+        fake_data = [
+            {'GAME_DURATION': 3, 'RELOAD': 0},
+            {'GAME_DURATION': 4.57, 'RELOAD': 1},
+            {'GAME_DURATION': 0, 'RELOAD': 0},
+            {'GAME_DURATION': 1.5, 'RELOAD': 0},
+            {'GAME_DURATION': 1000, 'RELOAD': 0},
+        ]
+        expected_total_games_value = '5'
+
+        # Act
+        total_games_value = update_total_games_value(fake_data)
+
+        # Assert
+        assert total_games_value == expected_total_games_value
+
+    def test_returns_0_given_empty_table_data(self):
+        # Arrange
+        fake_data = []
+        expected_total_games_value = '0'
+
+        # Act
+        total_games_value = update_total_games_value(fake_data)
+
+        # Assert
+        assert total_games_value == expected_total_games_value
+
+    def test_return_value_contains_thousand_separators_when_table_length_exceeds_a_thousand(self):
+        # Arrange
+        fake_data = [{} for _ in range(1001)]
+        expected_total_games_value = '1,001'
+
+        # Act
+        total_games_value = update_total_games_value(fake_data)
+
+        # Assert
+        assert total_games_value == expected_total_games_value
+
+
+@pytest.mark.parametrize(
+    "user_guide_button_clicks, close_button_clicks, is_modal_open, expected_is_modal_open",
+    [
+        # Test that clicking the user guide button opens the modal
+        (1, None, False, True),
+        # Test that clicking the close button closes the modal
+        (None, 1, True, False),
+        # Test that the modal remains closed if no buttons are clicked
+        (None, None, False, False),
+        # Test that the modal remains open if it was already open and no buttons are clicked
+        (None, None, True, True),
+        # Test that clicking both buttons opens the modal
+        (1, 1, False, True),
+        # Test that clicking both buttons closes the modal
+        (1, 1, True, False),
+    ]
+)
+def test_toggle_modal(user_guide_button_clicks, close_button_clicks, is_modal_open, expected_is_modal_open):
+    assert toggle_modal(user_guide_button_clicks, close_button_clicks,
+                        is_modal_open) == expected_is_modal_open
