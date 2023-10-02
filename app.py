@@ -11,6 +11,15 @@ from dash.exceptions import PreventUpdate
 
 
 def connect_to_mariadb():
+    """
+    Connects to a MariaDB database using environment variables for authentication.
+
+    Returns:
+    mariadb.connection: A connection object representing the database connection.
+
+    Raises:
+    mariadb.Error: An error occurred while connecting to the database.
+    """
     try:
         connection = mariadb.connect(
             user=os.environ['DB_USER'],
@@ -26,6 +35,17 @@ def connect_to_mariadb():
 
 
 def create_app():
+    """
+    Creates a Dash web application instance for the Wesnoth Multiplayer Dashboard.
+
+    This function initializes a Dash web application instance with external stylesheets,
+    meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
+    It also fetches column names from the 'tmp_game_info' table in a MariaDB database
+    to dynamically generate the dashboard's layout.
+
+    Returns:
+        Dash: A Dash web application instance.
+    """
     app = Dash(
         __name__,
         external_stylesheets=[
@@ -59,8 +79,18 @@ def create_app():
 
 
 def create_app_layout(column_names):
+    """
+    Creates the layout for the Wesnoth Multiplayer Dashboard web application.
 
-    # Read contents of Markdown files
+    This function defines the structure of the dashboard's user interface, including
+    the title, user guide modal, date picker, data table, charts, and footer.
+
+    Args:
+        column_names (list): A list of column names for the data table.
+
+    Returns:
+        The Dash web application layout.
+    """
     with open('./assets/markdown/footer_technology_stack.md', 'r') as file:
         footer_technology_stack_markdown = file.read()
 
@@ -106,7 +136,7 @@ def create_app_layout(column_names):
                             dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
                             dbc.ModalFooter(
                                 dbc.Button(
-                                    "Close", id="close", className="ms-auto", n_clicks=0
+                                    "Close", id="close-button", className="ms-auto", n_clicks=0
                                 )
                             ),
                         ],
@@ -241,6 +271,16 @@ def create_app_layout(column_names):
     prevent_initial_call=True
 )
 def update_table(start_date, end_date):
+    """
+    Update the table with data from the database based on the selected date range.
+
+    Args:
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
+
+    Returns:
+        list[dict]: A list of dictionaries containing the data to be displayed in the table.
+    """
     # Validate that both start_date and end_date are not None.
     if start_date is None or end_date is None:
         raise PreventUpdate
@@ -273,6 +313,16 @@ def update_table(start_date, end_date):
     Input('table', 'columns'),
 )
 def update_instance_version_chart(data, columns):
+    """
+    Update the instance-version-chart whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated instance-version-chart.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     instance_version_value_counts = (
         df['INSTANCE_VERSION']
@@ -300,6 +350,16 @@ def update_instance_version_chart(data, columns):
     Input('table', 'columns'),
 )
 def update_oos_chart(data, columns):
+    """
+    Update the oos-chart whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated oos-chart.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     oos_value_counts = (
         df['OOS']
@@ -331,6 +391,16 @@ def update_oos_chart(data, columns):
     Input('table', 'columns'),
 )
 def update_reload_chart(data, columns):
+    """
+    Update the reload-chart whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated reload-chart.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     reload_value_counts = (
         df['RELOAD']
@@ -362,6 +432,16 @@ def update_reload_chart(data, columns):
     Input('table', 'columns'),
 )
 def update_observers_chart(data, columns):
+    """
+    Update the observers-chart whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated observers-chart.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     observers_value_counts = (
         df['OBSERVERS']
@@ -393,6 +473,16 @@ def update_observers_chart(data, columns):
     Input('table', 'columns'),
 )
 def update_password_chart(data, columns):
+    """
+    Update the password-chart whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated password-chart.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     password_value_counts = (
         df['PASSWORD']
@@ -424,6 +514,16 @@ def update_password_chart(data, columns):
     Input('table', 'columns'),
 )
 def update_public_chart(data, columns):
+    """
+    Update the public-chart whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated public-chart.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     public_value_counts = (
         df['PUBLIC']
@@ -455,6 +555,16 @@ def update_public_chart(data, columns):
     Input('table', 'columns'),
 )
 def update_game_duration_histogram(data, columns):
+    """
+    Update the game-duration-histogram whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated game-duration-histogram.
+    """
     df = pd.DataFrame(data, columns=[column['name'] for column in columns])
     figure = px.histogram(
         df,
@@ -479,17 +589,38 @@ def update_game_duration_histogram(data, columns):
     Input('table', 'data'),
 )
 def update_total_games_value(data):
-    df = pd.DataFrame(data)
-    return f"{len(df):,}"
+    """
+    Updates the total-games-value card displayed on the dashboard.
+
+    Args:
+        data (list[dict]): The table data to be used to calculate the total games value.
+
+    Returns:
+        str: The total games value formatted to have comma separators.
+    """
+    if data is None:
+        raise PreventUpdate
+    return f"{len(data):,}"
 
 
 @callback(
     Output("modal", "is_open"),
     Input("user-guide-button", "n_clicks"),
-    Input("close", "n_clicks"),
+    Input("close-button", "n_clicks"),
     State("modal", "is_open"),
 )
 def toggle_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
+    """
+    Toggles the state of the modal based on the user-guide-button clicks and close-button clicks.
+
+    Args:
+        user_guide_button_clicks (int): The number of times the user guide button has been clicked.
+        close_button_clicks (int): The number of times the close button has been clicked.
+        is_modal_open (bool): The current state of the modal; True for 'open' and False for 'closed'.
+
+    Returns:
+        bool: The new state of the modal.
+    """
     if user_guide_button_clicks or close_button_clicks:
         return not is_modal_open
     return is_modal_open

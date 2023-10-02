@@ -306,6 +306,10 @@ class TestUpdateTotalGamesValue:
         # Assert
         assert total_games_value == expected_total_games_value
 
+    def test_raises_prevent_update_when_table_data_is_none(self):
+        with pytest.raises(PreventUpdate):
+            update_total_games_value(None)
+
 
 @pytest.mark.parametrize(
     "user_guide_button_clicks, close_button_clicks, is_modal_open, expected_is_modal_open",
