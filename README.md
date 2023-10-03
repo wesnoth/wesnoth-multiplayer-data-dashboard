@@ -14,6 +14,10 @@ See [user_guide.md](assets/markdown/user_guide.md) for a detailed user guide.
 
 Python 3.11.5 was used to initially develop the app. To guarantee compatibility, it is recommended to use Python 3.11.5 or higher. You may use a [virtual environment](https://docs.python.org/3/library/venv.html) to isolate the Python version and app dependencies from other Python projects on your system.
 
+#### Testing on Older Python version
+
+The test was done to see if the app will work on Python 3.9.2. In debug mode, the app works but there is an error message, which the user doesn't see, that gets logged the first time the page was loaded, but the whole app works otherwise. With debug mode set to False, there is no error message at all.
+
 ### App Dependencies
 
 Install development dependencies using
