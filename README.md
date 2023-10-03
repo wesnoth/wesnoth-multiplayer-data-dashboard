@@ -102,7 +102,7 @@ See [footer_technology_stack.md](assets/markdown/footer_technology_stack.md) for
 
 Developer Notes: 
 
-- [React](https://react.dev/) is also involved, because Plotly uses it for their UI components. You don't need to know React unless you want to actually [make your own Plotly components or start modifying existing ones](https://dash.plotly.com/react-for-python-developers). Sometimes, the javascript console of the browser will contain error messages that you wont otherwise see in your main terminal.
+- [React](https://react.dev/) is also involved, because Plotly uses it for their UI components. You don't need to know React unless you want to actually [make your own Plotly components or start modifying existing ones](https://dash.plotly.com/react-for-python-developers). Sometimes, the JavaScript console of the browser will contain error messages that you wont otherwise see in your main terminal.
 - [Flask](https://flask.palletsprojects.com) is also involved, because Dash apps are actually Flask apps, but you're not really meant to tinker with most of the Flask parts unless you are planning to [do something outside of Plotly Dash coding conventions](https://hackersandslackers.com/plotly-dash-with-flask/).
 
 ## App Observability
@@ -131,7 +131,7 @@ The following pytest plugins are used:
 
 ### Keystone Function
 
-As far as unit tests are concerned, the most critical keystone function to have a variety of test cases for is the `update_table()` callback function because this function fetches a large amount of raw data from a database, converts the data to a pandas dataframe, conditions the data, and derives additional features from the data.
+As far as unit tests are concerned, the most critical function to have a variety of test cases for is the `update_table()` callback function because this function fetches a large amount of raw data from a database, converts the data to a pandas dataframe, conditions the data, and derives additional features from the data.
 
 The output target of this function, which is the table, is subsequently utilized by other callback functions to generate graphs and charts. Therefore, the proper execution of this function determines whether the subsequent callbacks result in success or failure.
 
