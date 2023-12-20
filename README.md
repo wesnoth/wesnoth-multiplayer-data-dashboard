@@ -26,6 +26,8 @@ Install development dependencies using
 pip install -r requirements/development.txt
 ```
 
+If you are having issues installing the `mariadb` dependency, see [Install MariaDB Connector/Python](https://mariadb.com/docs/server/connect/programming-languages/python/install/)
+
 ### Database
 
 #### Install and Setup MariaDB
