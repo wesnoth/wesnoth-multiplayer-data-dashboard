@@ -102,7 +102,7 @@ The app will be served at port 8050 of your local host. You can view the app in 
 
 See [footer_technology_stack.md](assets/markdown/footer_technology_stack.md) for a list of the technologies used in this app.
 
-Developer Notes: 
+Developer Notes:
 
 - [React](https://react.dev/) is also involved, because Plotly uses it for their UI components. You don't need to know React unless you want to actually [make your own Plotly components or start modifying existing ones](https://dash.plotly.com/react-for-python-developers). Sometimes, the JavaScript console of the browser will contain error messages that you won't otherwise see in your main terminal.
 - [Flask](https://flask.palletsprojects.com) is also involved, because Dash apps are actually Flask apps, but you're not really meant to tinker with most of the Flask parts unless you are planning to [do something outside of Plotly Dash coding conventions](https://hackersandslackers.com/plotly-dash-with-flask/).
@@ -130,12 +130,6 @@ The following pytest plugins are used:
 | [pytest-mock](https://pytest-mock.readthedocs.io/en/latest/) | Provides a `mocker` fixture that is used to mock functions and classes. |
 | [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) | (Optional Use). Generates coverage reports. |
 | [pytest-env](https://github.com/pytest-dev/pytest-env) | You need to use this to set environment variables during test. The same variables that you set in order to run the app should also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
-
-### Keystone Function
-
-As far as unit tests are concerned, the most critical function to have a variety of test cases for is the `update_table()` callback function because this function fetches a large amount of raw data from a database, converts the data to a pandas dataframe, conditions the data, and derives additional features from the data.
-
-The output target of this function, which is the table, is subsequently utilized by other callback functions to generate graphs and charts. Therefore, the proper execution of this function determines whether the subsequent callbacks result in success or failure.
 
 ## Deployment
 
