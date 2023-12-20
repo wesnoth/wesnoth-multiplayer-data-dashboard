@@ -1,5 +1,6 @@
 -r common.txt
 dash[testing]
+pytest
 pytest-env
 pytest-cov
 pytest-mock
