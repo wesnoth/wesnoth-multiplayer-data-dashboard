@@ -129,7 +129,7 @@ The following pytest plugins are used:
 | --- | --- |
 | [pytest-mock](https://pytest-mock.readthedocs.io/en/latest/) | Provides a `mocker` fixture that is used to mock functions and classes. |
 | [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) | (Optional Use). Generates coverage reports. |
-| [pytest-env](https://github.com/pytest-dev/pytest-env) | You need to use this to set environment variables during test. The same variables that you set in order to run the app should also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
+| [pytest-env](https://github.com/pytest-dev/pytest-env) | You need to use this to set environment variables during test. The same variables that you set in order to run the app can also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
 
 ## Deployment
 
