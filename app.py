@@ -261,7 +261,7 @@ def update_total_games_value(start_date, end_date):
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
     )
-    logging.debug(f"Fetched column names of {target_table} from database")
+    logging.debug(f"Fetched the count of total games from {target_table} from database")
     games_count = cursor.fetchone()[0]
     cursor.close()
     mariadb_connection.close()
