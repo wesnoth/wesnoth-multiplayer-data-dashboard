@@ -4,9 +4,8 @@ import sys
 
 import dash_bootstrap_components as dbc
 import mariadb
-import pandas as pd
 import plotly.express as px
-from dash import Dash, Input, Output, State, callback, dash_table, dcc, html
+from dash import Dash, Input, Output, State, callback, dcc, html
 from dash.exceptions import PreventUpdate
 
 
@@ -22,11 +21,11 @@ def connect_to_mariadb():
     """
     try:
         connection = mariadb.connect(
-            user=os.environ['DB_USER'],
-            password=os.environ['DB_PASSWORD'],
-            host=os.environ['DB_HOST'],
-            port=int(os.environ['DB_PORT']),
-            database=os.environ['DB_DATABASE']
+            user=os.environ["DB_USER"],
+            password=os.environ["DB_PASSWORD"],
+            host=os.environ["DB_HOST"],
+            port=int(os.environ["DB_PORT"]),
+            database=os.environ["DB_DATABASE"],
         )
         return connection
     except mariadb.Error as error:
@@ -40,7 +39,7 @@ def create_app():
 
     This function initializes a Dash web application instance with external stylesheets,
     meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
-    It also fetches column names from the 'tmp_game_info' table in a MariaDB database
+    It also fetches column names from the 'wesnothd_game_info' table in a MariaDB database
     to dynamically generate the dashboard's layout.
 
     Returns:
@@ -50,35 +49,22 @@ def create_app():
         __name__,
         external_stylesheets=[
             dbc.themes.BOOTSTRAP,
-            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
         ],
         title="Wesnoth Multiplayer Dashboard",
         meta_tags=[
             {
-                'name': 'description',
-                'content': 'A dashboard for a database of Wesnoth multiplayer games.'
+                "name": "description",
+                "content": "A dashboard for a database of Wesnoth multiplayer games.",
             }
-        ]
+        ],
     )
 
-    # Fetch the column names of the tmp_game_info table.
-    mariadb_connection = connect_to_mariadb()
-    cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
-    cursor.execute(f"SHOW COLUMNS FROM {target_table};")
-    logging.debug(f"Fetched column names of {target_table} from database")
-    column_names = [i[0] for i in cursor.fetchall()]
-    cursor.close()
-    mariadb_connection.close()
-
-    # Add a column for the game duration. It is added this way because the column is not stored in the database and is derived from the START_TIME and END_TIME columns.
-    column_names.append("GAME_DURATION")
-
-    app.layout = create_app_layout(column_names)
+    app.layout = create_app_layout()
     return app
 
 
-def create_app_layout(column_names):
+def create_app_layout():
     """
     Creates the layout for the Wesnoth Multiplayer Dashboard web application.
 
@@ -91,44 +77,38 @@ def create_app_layout(column_names):
     Returns:
         The Dash web application layout.
     """
-    with open('./assets/markdown/footer_technology_stack.md', 'r') as file:
+    with open("./assets/markdown/footer_technology_stack.md", "r") as file:
         footer_technology_stack_markdown = file.read()
 
-    with open('./assets/markdown/user_guide.md', 'r') as file:
+    with open("./assets/markdown/user_guide.md", "r") as file:
         user_guide_markdown = file.read()
 
     def create_donut_chart_column(figure_id):
         donut_column = dbc.Col(
             dbc.Card(
-                dcc.Loading(
-                    dbc.CardBody(
-                        dcc.Graph(
-                            id=figure_id
-                        )
-                    )
-                ),
+                dcc.Loading(dbc.CardBody(dcc.Graph(id=figure_id))),
                 className="shadow-sm mb-4 bg-white rounded",
             ),
             sm=12,
-            lg=4
+            lg=4,
         )
         return donut_column
 
     layout = html.Div(
-        id='top-level-container',
+        id="top-level-container",
         children=[
             html.Div(
-                id='title-container',
+                id="title-container",
                 children=[
                     html.H1("Wesnoth Multiplayer Data"),
                     dbc.Button(
                         children=[
                             html.I(className="fa fa-question-circle"),
-                            "  User Guide"
+                            "  User Guide",
                         ],
                         color="primary",
-                        id='user-guide-button',
-                        n_clicks=0
+                        id="user-guide-button",
+                        n_clicks=0,
                     ),
                     dbc.Modal(
                         [
@@ -136,7 +116,10 @@ def create_app_layout(column_names):
                             dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
                             dbc.ModalFooter(
                                 dbc.Button(
-                                    "Close", id="close-button", className="ms-auto", n_clicks=0
+                                    "Close",
+                                    id="close-button",
+                                    className="ms-auto",
+                                    n_clicks=0,
                                 )
                             ),
                         ],
@@ -145,96 +128,76 @@ def create_app_layout(column_names):
                         size="xl",
                     ),
                 ],
-                className="d-flex align-items-center justify-content-between"
+                className="d-flex align-items-center justify-content-between",
             ),
             html.Div(
-                id='content-container',
+                id="content-container",
                 children=[
                     html.Div(
-                        id='date-picker-container',
+                        id="date-picker-container",
                         children=[
                             html.Label(
-                                id="date-picker-label",
-                                children="Specify a Date Range"
+                                id="date-picker-label", children="Specify a Date Range"
                             ),
-                            dcc.DatePickerRange(id='date-picker')
+                            dcc.DatePickerRange(id="date-picker"),
+                        ],
+                    ),
+                    dbc.Row(
+                        children=[
+                            dbc.Col(
+                                dbc.Card(
+                                    dcc.Loading(
+                                        dbc.CardBody(
+                                            [
+                                                html.H5(
+                                                    "Total Number of Games",
+                                                    className="card-title",
+                                                ),
+                                                html.P(
+                                                    id="total-games-value",
+                                                    className="card-text",
+                                                ),
+                                            ]
+                                        )
+                                    ),
+                                    className="shadow-sm mb-4 bg-white rounded mt-4",
+                                    id="total-games-card",
+                                ),
+                                lg=2,
+                            ),
                         ]
                     ),
-                    dbc.Row([
-                        dcc.Loading(
-                            dash_table.DataTable(
-                                id='table',
-                                columns=[{"name": column, "id": column}
-                                         for column in column_names],
-                                editable=True,
-                                filter_action="native",
-                                sort_action="native",
-                                sort_mode="multi",
-                                column_selectable="single",
-                                row_deletable=True,
-                                page_action="native",
-                                page_current=0,
-                                page_size=10,
-                                style_table={'overflowX': 'auto'},
-                                export_format="csv",
-                            ),
-                        )
-                    ]),
-                    dbc.Col(
-                        dbc.Card(
-                            dcc.Loading(
-                                dbc.CardBody([
-                                    html.H5("Total Number of Games",
-                                            className="card-title"),
-                                    html.P(id="total-games-value",
-                                           className="card-text"),
-                                ])
-                            ),
-                            className="shadow-sm mb-4 bg-white rounded mt-4",
-                            id='total-games-card'
-                        ),
-                        lg=2,
-                    ),
-                    html.Div([
-                        dbc.Row([
-                            dbc.Col(
-                                id='histogram-container',
+                    html.Div(
+                        [
+                            html.Div(
+                                id="donut-charts-container",
                                 children=[
-                                    dbc.Card(
-                                        dcc.Loading(
-                                            dbc.CardBody(
-                                                dcc.Graph(
-                                                    id='game-duration-histogram')
-                                            )
-                                        ),
-                                        className="shadow-sm mb-4 bg-white rounded",
-                                    )
+                                    dbc.Row(
+                                        [
+                                            create_donut_chart_column(
+                                                "instance_version-chart"
+                                            ),
+                                            create_donut_chart_column("oos-chart"),
+                                            create_donut_chart_column("reload-chart"),
+                                        ]
+                                    ),
+                                    dbc.Row(
+                                        [
+                                            create_donut_chart_column(
+                                                "observers-chart"
+                                            ),
+                                            create_donut_chart_column("password-chart"),
+                                            create_donut_chart_column("public-chart"),
+                                        ]
+                                    ),
                                 ],
-                            )
-                        ]),
-                        html.Div(
-                            id='donut-charts-container',
-                            children=[
-                                dbc.Row([
-                                    create_donut_chart_column(
-                                        'instance_version-chart'),
-                                    create_donut_chart_column('oos-chart'),
-                                    create_donut_chart_column('reload-chart'),
-                                ]),
-                                dbc.Row([
-                                    create_donut_chart_column(
-                                        'observers-chart'),
-                                    create_donut_chart_column(
-                                        'password-chart'),
-                                    create_donut_chart_column('public-chart'),
-                                ]),
-                            ],
-                        ),
-                    ])
-                ]
+                            ),
+                        ]
+                    ),
+                ],
             ),
             html.Footer(
-                id='footer-container',
+                id="footer-container",
                 children=html.Div(
                     children=[
                         dcc.Markdown(
@@ -244,19 +207,21 @@ def create_app_layout(column_names):
                         ),
                         dbc.Button(
                             id="download-link",
-                            children=html.Div([
-                                html.I(className="fa fa-github"),
-                                "  View Source Code on GitHub ",
-                                html.I(className="fa fa-external-link"),
-                            ]),
+                            children=html.Div(
+                                [
+                                    html.I(className="fa fa-github"),
+                                    "  View Source Code on GitHub ",
+                                    html.I(className="fa fa-external-link"),
+                                ]
+                            ),
                             color="primary",
                             href="#",
                             target="_blank",
-                        )
+                        ),
                     ],
-                )
-            )
-        ]
+                ),
+            ),
+        ],
     )
     return layout
 
@@ -265,75 +230,87 @@ def create_app_layout(column_names):
 
 
 @callback(
-    Output('table', 'data'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'),
-    prevent_initial_call=True
+    Output("total-games-value", "children"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
+    prevent_initial_call=True,
 )
-def update_table(start_date, end_date):
+def update_total_games_value(start_date, end_date):
     """
-    Update the table with data from the database based on the selected date range.
+    Updates the total-games-value card displayed on the dashboard.
+
+    When the date range is changed, this function fetches the total count of games played in the given date range from the database,
+    formats it to have comma separators, and returns it to be displayed on the dashboard.
 
     Args:
         start_date (str): The start date of the selected date range.
         end_date (str): The end date of the selected date range.
 
     Returns:
-        list[dict]: A list of dictionaries containing the data to be displayed in the table.
+        str: The count of total games formatted to have comma separators.
     """
     # Validate that both start_date and end_date are not None.
     if start_date is None or end_date is None:
         raise PreventUpdate
 
+    # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
     cursor.execute(
-        "SELECT * FROM tmp_game_info WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
-    columns = [i[0] for i in cursor.description]
-    df = (
-        pd.DataFrame(cursor.fetchall(), columns=columns)
-        .map(lambda x: x[0] if type(x) is bytes else x)
-        .assign(
-            START_TIME=lambda x: pd.to_datetime(x['START_TIME']),
-            END_TIME=lambda x: pd.to_datetime(x['END_TIME']),
-            # Calculate the game duration in minutes.
-            GAME_DURATION=lambda x: (
-                x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
-        )
+        f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
+        (start_date, end_date),
     )
+    logging.debug(f"Fetched the count of total games from {target_table} from database")
+    games_count = cursor.fetchone()[0]
     cursor.close()
     mariadb_connection.close()
-    logging.debug('Fetched data for table from database')
-    return df.to_dict('records')
+
+    return f"{games_count:,}"
 
 
 @callback(
-    Output('instance_version-chart', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("instance_version-chart", "figure"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
 )
-def update_instance_version_chart(data, columns):
+def update_instance_version_chart(start_date, end_date):
     """
-    Update the instance-version-chart whenever the table data changes.
+    Update the instance-version-chart whenever the date range changes.
 
     Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
 
     Returns:
         plotly.graph_objects.Figure: The updated instance-version-chart.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    instance_version_value_counts = (
-        df['INSTANCE_VERSION']
-        .value_counts()
-        .to_frame()
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        return px.pie()  # An empty chart
+
+    # Query the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
+    cursor.execute(
+        f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
+        (start_date, end_date),
     )
+    logging.debug(
+        f"Fetched instance version value counts of {target_table} from database"
+    )
+    value_counts = cursor.fetchall()  # List of tuples
+    cursor.close()
+    mariadb_connection.close()
+
+    # Convert list of tuples to dictionary
+    instance_version_value_counts = dict(value_counts)
+
     figure = px.pie(
-        instance_version_value_counts,
-        names=instance_version_value_counts.index,
-        values=instance_version_value_counts['count'],
-        title='Wesnoth Instance Version',
+        names=list(instance_version_value_counts.keys()),
+        values=list(instance_version_value_counts.values()),
+        title="Wesnoth Instance Version",
         hole=0.7,
     )
     figure.update_layout(
@@ -341,40 +318,56 @@ def update_instance_version_chart(data, columns):
             bgcolor="white",
         )
     )
+    figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
     return figure
 
 
 @callback(
-    Output('oos-chart', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("oos-chart", "figure"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
 )
-def update_oos_chart(data, columns):
+def update_oos_chart(start_date, end_date):
     """
-    Update the oos-chart whenever the table data changes.
+    Update the oos-chart whenever the date range changes.
 
     Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
 
     Returns:
         plotly.graph_objects.Figure: The updated oos-chart.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    oos_value_counts = (
-        df['OOS']
-        .replace({
-            0: 'Did not encounter OOS',
-            1: 'Encountered OOS'
-        })
-        .value_counts()
-        .to_frame()
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        return px.pie()  # An empty chart
+
+    # Query the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
+    cursor.execute(
+        f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
+        (start_date, end_date),
     )
+    logging.debug(f"Fetched OOS value counts of {target_table} from database")
+    value_counts = cursor.fetchall()  # List of tuples
+    cursor.close()
+    mariadb_connection.close()
+
+    # Convert list of tuples to dictionary
+    oos_value_counts = dict(value_counts)
+
+    # Remap byte keys to string values
+    key_mapping = {b"\x00": "Did not encounter OOS", b"\x01": "Encountered OOS"}
+    oos_value_counts = {
+        key_mapping[key]: value for key, value in oos_value_counts.items()
+    }
+
     figure = px.pie(
-        oos_value_counts,
-        names=oos_value_counts.index,
-        values=oos_value_counts['count'],
-        title='Games with Out-of-Sync Errors',
+        names=list(oos_value_counts.keys()),
+        values=list(oos_value_counts.values()),
+        title="Games with Out-of-Sync Errors",
         hole=0.7,
     )
     figure.update_layout(
@@ -382,40 +375,56 @@ def update_oos_chart(data, columns):
             bgcolor="white",
         )
     )
+    figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
     return figure
 
 
 @callback(
-    Output('reload-chart', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("reload-chart", "figure"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
 )
-def update_reload_chart(data, columns):
+def update_reload_chart(start_date, end_date):
     """
-    Update the reload-chart whenever the table data changes.
+    Update the reload-chart whenever the date range changes.
 
     Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
 
     Returns:
         plotly.graph_objects.Figure: The updated reload-chart.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    reload_value_counts = (
-        df['RELOAD']
-        .replace({
-            0: 'New game',
-            1: 'Reload of a previous game'
-        })
-        .value_counts()
-        .to_frame()
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        return px.pie()  # An empty chart
+
+    # Query the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
+    cursor.execute(
+        f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
+        (start_date, end_date),
     )
+    logging.debug(f"Fetched RELOAD value counts of {target_table} from database")
+    value_counts = cursor.fetchall()  # List of tuples
+    cursor.close()
+    mariadb_connection.close()
+
+    # Convert list of tuples to dictionary
+    reload_value_counts = dict(value_counts)
+
+    # Remap byte keys to string values
+    key_mapping = {b"\x00": "New Game", b"\x01": "Reloaded Game"}
+    reload_value_counts = {
+        key_mapping[key]: value for key, value in reload_value_counts.items()
+    }
+
     figure = px.pie(
-        reload_value_counts,
-        names=reload_value_counts.index,
-        values=reload_value_counts['count'],
-        title='Reloaded Games',
+        names=list(reload_value_counts.keys()),
+        values=list(reload_value_counts.values()),
+        title="Reloaded Games",
         hole=0.7,
     )
     figure.update_layout(
@@ -423,40 +432,56 @@ def update_reload_chart(data, columns):
             bgcolor="white",
         )
     )
+    figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
     return figure
 
 
 @callback(
-    Output('observers-chart', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("observers-chart", "figure"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
 )
-def update_observers_chart(data, columns):
+def update_observers_chart(start_date, end_date):
     """
-    Update the observers-chart whenever the table data changes.
+    Update the observers-chart whenever the date range changes.
 
     Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
 
     Returns:
         plotly.graph_objects.Figure: The updated observers-chart.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    observers_value_counts = (
-        df['OBSERVERS']
-        .replace({
-            0: 'Observers not allowed',
-            1: 'Observers allowed'
-        })
-        .value_counts()
-        .to_frame()
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        return px.pie()  # An empty chart
+
+    # Query the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
+    cursor.execute(
+        f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
+        (start_date, end_date),
     )
+    logging.debug(f"Fetched OBSERVERS value counts of {target_table} from database")
+    value_counts = cursor.fetchall()  # List of tuples
+    cursor.close()
+    mariadb_connection.close()
+
+    # Convert list of tuples to dictionary
+    observers_value_counts = dict(value_counts)
+
+    # Remap byte keys to string values
+    key_mapping = {b"\x00": "Observers allowed", b"\x01": "Observers not allowed"}
+    observers_value_counts = {
+        key_mapping[key]: value for key, value in observers_value_counts.items()
+    }
+
     figure = px.pie(
-        observers_value_counts,
-        names=observers_value_counts.index,
-        values=observers_value_counts['count'],
-        title='Games that Allow Observers',
+        names=list(observers_value_counts.keys()),
+        values=list(observers_value_counts.values()),
+        title="Games that Allow Observers",
         hole=0.7,
     )
     figure.update_layout(
@@ -464,40 +489,56 @@ def update_observers_chart(data, columns):
             bgcolor="white",
         )
     )
+    figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
     return figure
 
 
 @callback(
-    Output('password-chart', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("password-chart", "figure"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
 )
-def update_password_chart(data, columns):
+def update_password_chart(start_date, end_date):
     """
-    Update the password-chart whenever the table data changes.
+    Update the password-chart whenever the date range changes.
 
     Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
 
     Returns:
         plotly.graph_objects.Figure: The updated password-chart.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    password_value_counts = (
-        df['PASSWORD']
-        .replace({
-            0: 'Password not required',
-            1: 'Password required'
-        })
-        .value_counts()
-        .to_frame()
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        return px.pie()  # An empty chart
+
+    # Query the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
+    cursor.execute(
+        f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
+        (start_date, end_date),
     )
+    logging.debug(f"Fetched PASSWORD value counts of {target_table} from database")
+    value_counts = cursor.fetchall()  # List of tuples
+    cursor.close()
+    mariadb_connection.close()
+
+    # Convert list of tuples to dictionary
+    password_value_counts = dict(value_counts)
+
+    # Remap byte keys to string values
+    key_mapping = {b"\x00": "Password not required", b"\x01": "Password required"}
+    password_value_counts = {
+        key_mapping[key]: value for key, value in password_value_counts.items()
+    }
+
     figure = px.pie(
-        password_value_counts,
-        names=password_value_counts.index,
-        values=password_value_counts['count'],
-        title='Games Requiring a Password to Join',
+        names=list(password_value_counts.keys()),
+        values=list(password_value_counts.values()),
+        title="Games Requiring a Password to Join",
         hole=0.7,
     )
     figure.update_layout(
@@ -505,40 +546,59 @@ def update_password_chart(data, columns):
             bgcolor="white",
         )
     )
+    figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
     return figure
 
 
 @callback(
-    Output('public-chart', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("public-chart", "figure"),
+    Input("date-picker", "start_date"),
+    Input("date-picker", "end_date"),
 )
-def update_public_chart(data, columns):
+def update_public_chart(start_date, end_date):
     """
-    Update the public-chart whenever the table data changes.
+    Update the public-chart whenever the date range changes.
 
     Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
 
     Returns:
         plotly.graph_objects.Figure: The updated public-chart.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    public_value_counts = (
-        df['PUBLIC']
-        .replace({
-            0: 'Replay file was not made public',
-            1: 'Replay file was made public'
-        })
-        .value_counts()
-        .to_frame()
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        return px.pie()  # An empty chart
+
+    # Query the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = "wesnothd_game_info"
+    cursor.execute(
+        f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
+        (start_date, end_date),
     )
+    logging.debug(f"Fetched PUBLIC value counts of {target_table} from database")
+    value_counts = cursor.fetchall()  # List of tuples
+    cursor.close()
+    mariadb_connection.close()
+
+    # Convert list of tuples to dictionary
+    public_value_counts = dict(value_counts)
+
+    # Remap byte keys to string values
+    key_mapping = {
+        b"\x00": "Replay file was not made public",
+        b"\x01": "Replay file was made public",
+    }
+    public_value_counts = {
+        key_mapping[key]: value for key, value in public_value_counts.items()
+    }
+
     figure = px.pie(
-        public_value_counts,
-        names=public_value_counts.index,
-        values=public_value_counts['count'],
-        title='Games with a Public Replay File',
+        names=list(public_value_counts.keys()),
+        values=list(public_value_counts.values()),
+        title="Games with a Public Replay File",
         hole=0.7,
     )
     figure.update_layout(
@@ -546,61 +606,8 @@ def update_public_chart(data, columns):
             bgcolor="white",
         )
     )
+    figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
     return figure
-
-
-@callback(
-    Output('game-duration-histogram', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
-)
-def update_game_duration_histogram(data, columns):
-    """
-    Update the game-duration-histogram whenever the table data changes.
-
-    Args:
-        data (list[dict]): The data to update the chart with.
-        columns (list[dict]): The columns of the data.
-
-    Returns:
-        plotly.graph_objects.Figure: The updated game-duration-histogram.
-    """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
-    figure = px.histogram(
-        df,
-        x='GAME_DURATION',
-        title='Game Duration (minutes)',
-        labels={'GAME_DURATION': 'Duration (minutes)'},
-        histnorm='percent',
-    ).update_traces(
-        marker_line_width=1,
-        marker_line_color="white"
-    )
-    figure.update_layout(
-        hoverlabel=dict(
-            bgcolor="white",
-        )
-    )
-    return figure
-
-
-@callback(
-    Output('total-games-value', 'children'),
-    Input('table', 'data'),
-)
-def update_total_games_value(data):
-    """
-    Updates the total-games-value card displayed on the dashboard.
-
-    Args:
-        data (list[dict]): The table data to be used to calculate the total games value.
-
-    Returns:
-        str: The total games value formatted to have comma separators.
-    """
-    if data is None:
-        raise PreventUpdate
-    return f"{len(data):,}"
 
 
 @callback(
@@ -636,12 +643,12 @@ def main():
     """
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     app = create_app()
     app.run(debug=True, dev_tools_prune_errors=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
