@@ -39,7 +39,7 @@ def create_app():
 
     This function initializes a Dash web application instance with external stylesheets,
     meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
-    It also fetches column names from the 'tmp_game_info' table in a MariaDB database
+    It also fetches column names from the 'wesnothd_game_info' table in a MariaDB database
     to dynamically generate the dashboard's layout.
 
     Returns:
@@ -256,7 +256,7 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -292,7 +292,7 @@ def update_instance_version_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -345,7 +345,7 @@ def update_oos_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -402,7 +402,7 @@ def update_reload_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -459,7 +459,7 @@ def update_observers_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -516,7 +516,7 @@ def update_password_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -573,7 +573,7 @@ def update_public_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "tmp_game_info"
+    target_table = "wesnothd_game_info"
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
