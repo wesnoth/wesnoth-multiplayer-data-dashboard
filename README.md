@@ -66,7 +66,7 @@ The app reads database credentials from environment variables. The following env
 | `DB_PORT`    | The port of the database server.                 |
 | `DB_USER`    | The username to use to connect to the database.  |
 | `DB_PASSWORD`| The password to use to connect to the database.  |
-| `DB_NAME`    | The name of the database to connect to.          |
+| `DB_DATABASE`    | The name of the database to connect to.          |
 
 It is up to you to determine how to set these environment variables. One example is provided below.
 
