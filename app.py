@@ -215,7 +215,7 @@ def create_app_layout():
                                 ]
                             ),
                             color="primary",
-                            href="#",
+                            href="https://github.com/wesnoth/wesnoth-multiplayer-data-dashboard",
                             target="_blank",
                         ),
                     ],
