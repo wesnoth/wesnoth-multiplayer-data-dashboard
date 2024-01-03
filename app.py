@@ -473,7 +473,7 @@ def update_observers_chart(start_date, end_date):
     observers_value_counts = dict(value_counts)
 
     # Remap byte keys to string values
-    key_mapping = {b"\x00": "Observers allowed", b"\x01": "Observers not allowed"}
+    key_mapping = {b"\x00": "Observers not allowed", b"\x01": "Observers allowed"}
     observers_value_counts = {
         key_mapping[key]: value for key, value in observers_value_counts.items()
     }
