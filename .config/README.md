@@ -22,7 +22,7 @@ Create two files* in this folder:
     "user": "<your_username>",
     "password": "<your_password>",
     "host": "<your_host>",
-    "port": <your_port>,
+    "port": "<your_port>",
     "database": "<your_database>"
 }
 ```
