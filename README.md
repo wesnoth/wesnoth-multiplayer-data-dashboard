@@ -56,9 +56,14 @@ The app fetches raw data from a MariaDB database. For development purposes, you 
 
 6. Using the MariaDB CLI or a GUI tool such as [HeidiSQL](https://www.heidisql.com/), verify that the database was created successfully and that the tables and data were imported correctly.
 
-#### Set Environment Variables
+#### Set App Configuration Options
 
-The app reads database credentials from environment variables. The following environment variables must be set:
+The app looks for two files containing launch options in the `.config` folder. See the [configuration readme](.config/README.md).
+
+#### Using Environment Variables for Database Credentials (Optional)
+
+Environment variables instead of `db_config.json` may optionally be used for the database credentials.
+The following environment variables must be set:
 
 | Variable     | Description                                      |
 |--------------|--------------------------------------------------|
@@ -66,7 +71,7 @@ The app reads database credentials from environment variables. The following env
 | `DB_PORT`    | The port of the database server.                 |
 | `DB_USER`    | The username to use to connect to the database.  |
 | `DB_PASSWORD`| The password to use to connect to the database.  |
-| `DB_DATABASE`    | The name of the database to connect to.          |
+| `DB_DATABASE`| The name of the database to connect to.          |
 
 It is up to you to determine how to set these environment variables. One example is provided below.
 
@@ -129,7 +134,7 @@ The following pytest plugins are used:
 | --- | --- |
 | [pytest-mock](https://pytest-mock.readthedocs.io/en/latest/) | Provides a `mocker` fixture that is used to mock functions and classes. |
 | [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) | (Optional Use). Generates coverage reports. |
-| [pytest-env](https://github.com/pytest-dev/pytest-env) | You need to use this to set environment variables during test. The same variables that you set in order to run the app can also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
+| [pytest-env](https://github.com/pytest-dev/pytest-env) | (Optional Use). If you are not using the .json files for app configuration, you need to use this to set environment variables during test. The same variables that you set in order to run the app can also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
 
 ## Deployment
 

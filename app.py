@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -11,7 +12,10 @@ from dash.exceptions import PreventUpdate
 
 def connect_to_mariadb():
     """
-    Connects to a MariaDB database using environment variables for authentication.
+    Connects to a MariaDB database using environment variables or a .json file for authentication.
+
+    The function first tries to load configuration from environment variables.
+    If any configuration is missing, it tries to load from a .json file.
 
     Returns:
     mariadb.connection: A connection object representing the database connection.
@@ -20,13 +24,21 @@ def connect_to_mariadb():
     mariadb.Error: An error occurred while connecting to the database.
     """
     try:
-        connection = mariadb.connect(
-            user=os.environ["DB_USER"],
-            password=os.environ["DB_PASSWORD"],
-            host=os.environ["DB_HOST"],
-            port=int(os.environ["DB_PORT"]),
-            database=os.environ["DB_DATABASE"],
-        )
+        config = {
+            "user": os.environ.get("DB_USER"),
+            "password": os.environ.get("DB_PASSWORD"),
+            "host": os.environ.get("DB_HOST"),
+            "port": int(os.environ.get("DB_PORT"))
+            if os.environ.get("DB_PORT")
+            else None,
+            "database": os.environ.get("DB_DATABASE"),
+        }
+
+        if None in config.values():
+            with open(".config/db_config.json", "r") as f:
+                config = json.load(f)
+
+        connection = mariadb.connect(**config)
         return connection
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
@@ -39,12 +51,15 @@ def create_app():
 
     This function initializes a Dash web application instance with external stylesheets,
     meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
-    It also fetches column names from the 'wesnothd_game_info' table in a MariaDB database
-    to dynamically generate the dashboard's layout.
 
     Returns:
         Dash: A Dash web application instance.
     """
+
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+        url_base_pathname = config["url_base_pathname"]
+
     app = Dash(
         __name__,
         external_stylesheets=[
@@ -58,6 +73,7 @@ def create_app():
                 "content": "A dashboard for a database of Wesnoth multiplayer games.",
             }
         ],
+        url_base_pathname=url_base_pathname,
     )
 
     app.layout = create_app_layout()
@@ -256,7 +272,9 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -292,7 +310,9 @@ def update_instance_version_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -345,7 +365,9 @@ def update_oos_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -402,7 +424,9 @@ def update_reload_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -459,7 +483,9 @@ def update_observers_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -516,7 +542,9 @@ def update_password_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -573,7 +601,9 @@ def update_public_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    with open(".config/config.json", "r") as f:
+        config = json.load(f)
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
