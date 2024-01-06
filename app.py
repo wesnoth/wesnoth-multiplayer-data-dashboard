@@ -8,6 +8,7 @@ import mariadb
 import plotly.express as px
 from dash import Dash, Input, Output, State, callback, dcc, html
 from dash.exceptions import PreventUpdate
+from flask_caching import Cache
 
 
 def connect_to_mariadb():
@@ -86,9 +87,6 @@ def create_app_layout():
 
     This function defines the structure of the dashboard's user interface, including
     the title, user guide modal, date picker, data table, charts, and footer.
-
-    Args:
-        column_names (list): A list of column names for the data table.
 
     Returns:
         The Dash web application layout.
@@ -272,9 +270,7 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -310,9 +306,7 @@ def update_instance_version_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -365,9 +359,7 @@ def update_oos_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -424,9 +416,7 @@ def update_reload_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -483,9 +473,7 @@ def update_observers_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -542,9 +530,7 @@ def update_password_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -601,9 +587,7 @@ def update_public_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    with open(".config/config.json", "r") as f:
-        config = json.load(f)
-    target_table = config["table_names_map"]["game_info"]
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
@@ -676,9 +660,31 @@ def main():
         format="%(asctime)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    app = create_app()
-    app.run(debug=True, dev_tools_prune_errors=False)
+    app.run(debug=True, dev_tools_prune_errors=False, threaded=False)
 
 
 if __name__ == "__main__":
+    app = create_app()
+
+    # Set up Flask-Caching for sharing data between callbacks
+    # Refer to the documentation for more information:
+    # Dash documentation: https://dash.plotly.com/sharing-data-between-callbacks
+    # Flask-Caching documentation: https://flask-caching.readthedocs.io/en/latest/
+    CACHE_CONFIG = {
+        "CACHE_TYPE": "SimpleCache",  # SimpleCache stores cached data in memory.
+    }
+    cache = Cache()
+    cache.init_app(app.server, config=CACHE_CONFIG)
+
+    @cache.memoize()
+    def get_target_table():
+        """Fetches and returns the database table name from the configuration options file."""
+        logging.debug(
+            "get_target_table called"
+        )  # This only gets logged the first time the function is called and proves that memoization is functioning.
+        with open(".config/config.json", "r") as f:
+            config = json.load(f)
+        target_table = config["table_names_map"]["game_info"]
+        return target_table
+
     main()
