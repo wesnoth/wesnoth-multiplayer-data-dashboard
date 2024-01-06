@@ -1,5 +1,4 @@
 .vscode/
 *.pyc
 tests/pytest.ini
-.config/config.json
-.config/db_config.json
+config.json

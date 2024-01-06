@@ -15,7 +15,7 @@ def create_app():
         Dash: A Dash web application instance.
     """
 
-    with open(".config/config.json", "r") as f:
+    with open("config.json", "r") as f:
         config = json.load(f)
         url_base_pathname = config["url_base_pathname"]
 

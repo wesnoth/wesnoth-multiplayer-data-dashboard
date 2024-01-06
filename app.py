@@ -46,7 +46,7 @@ def get_target_table():
     logging.debug(
         "get_target_table called"
     )  # This only gets logged the first time the function is called and proves that memoization is functioning.
-    with open(".config/config.json", "r") as f:
+    with open("config.json", "r") as f:
         config = json.load(f)
     target_table = config["table_names_map"]["game_info"]
     return target_table
@@ -76,19 +76,21 @@ def connect_to_mariadb():
             "port": 3306,
             "database": None,
         }
+        print(config)
 
         # Try to load configuration from .json file
-        if os.path.isfile(".config/db_config.json"):
-            with open(".config/db_config.json", "r") as f:
+        if os.path.isfile("config.json"):
+            with open("config.json", "r") as f:
                 file_config = json.load(f)
-                # Only update config with values that are not None
+                # Only update config with values that are not None and exist in the default configuration
                 config.update(
                     {
                         key: value
                         for key, value in file_config.items()
-                        if value is not None
+                        if value is not None and key in config
                     }
                 )
+        print(config)
 
         # Try to load configuration from environment variables
         env_config = {

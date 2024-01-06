@@ -58,7 +58,31 @@ The app fetches raw data from a MariaDB database. For development purposes, you 
 
 #### Set App Configuration Options
 
-The app looks for two files containing launch options in the `.config` folder. See the [configuration readme](.config/README.md).
+The app looks for a file called `config.json` containing launch options in the root folder of the repository.
+
+`config.json`:
+
+```json
+{
+    "user": "<your_username>",
+    "password": "<your_password>",
+    "host": "<your_host>",
+    "port": "<your_port>",
+    "database": "<your_database>",    
+    "url_base_pathname": "<your_url_base_pathname>",
+    "table_names_map": {
+        "game_info": "<your_game_info_table>",
+        "game_content_info": "<your_game_content_info_table>",
+        "game_player_info": "<your_game_player_info_table>"
+    }
+}
+```
+
+__*The `url_base_pathname` must start and end with "/". This field is optional and defaults to "/" when undeclared.__
+
+__*This file is not tracked in Git.__
+
+You can also use environment variables in place of `db_config.json`, as specified in the next section.
 
 #### Using Environment Variables for Database Credentials (Optional)
 
