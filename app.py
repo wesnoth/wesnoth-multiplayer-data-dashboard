@@ -13,10 +13,12 @@ from flask_caching import Cache
 
 def connect_to_mariadb():
     """
-    Connects to a MariaDB database using environment variables or a .json file for authentication.
+    Connects to a MariaDB database using defaults, a .json file, or environment variables, for authentication.
 
-    The function first tries to load configuration from environment variables.
-    If any configuration is missing, it tries to load from a .json file.
+    The function first sets default configuration.
+    Then it tries to load configuration from a .json file.
+    Then it tries to load configuration from environment variables.
+    Finally, it tries to load configuration from command line parameters.
 
     Returns:
     mariadb.connection: A connection object representing the database connection.
@@ -25,7 +27,30 @@ def connect_to_mariadb():
     mariadb.Error: An error occurred while connecting to the database.
     """
     try:
+        # Set default configuration
         config = {
+            "user": None,
+            "password": None,
+            "host": "127.0.0.1",
+            "port": 3306,
+            "database": None,
+        }
+
+        # Try to load configuration from .json file
+        if os.path.isfile(".config/db_config.json"):
+            with open(".config/db_config.json", "r") as f:
+                file_config = json.load(f)
+                # Only update config with values that are not None
+                config.update(
+                    {
+                        key: value
+                        for key, value in file_config.items()
+                        if value is not None
+                    }
+                )
+
+        # Try to load configuration from environment variables
+        env_config = {
             "user": os.environ.get("DB_USER"),
             "password": os.environ.get("DB_PASSWORD"),
             "host": os.environ.get("DB_HOST"),
@@ -34,10 +59,10 @@ def connect_to_mariadb():
             else None,
             "database": os.environ.get("DB_DATABASE"),
         }
-
-        if None in config.values():
-            with open(".config/db_config.json", "r") as f:
-                config = json.load(f)
+        # Only update config with values that are not None
+        config.update(
+            {key: value for key, value in env_config.items() if value is not None}
+        )
 
         connection = mariadb.connect(**config)
         return connection
