@@ -82,7 +82,7 @@ __*The `url_base_pathname` must start and end with "/". This field is optional a
 
 __*This file is not tracked in Git.__
 
-You can also use environment variables in place of `db_config.json`, as specified in the next section.
+You can also use environment variables in place of `config.json`, as specified in the next section.
 
 #### Using Environment Variables for Database Credentials (Optional)
 
