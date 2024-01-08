@@ -43,11 +43,11 @@ cache.init_app(app.server, config=CACHE_CONFIG)
 @cache.memoize()
 def get_target_table():
     """Fetches and returns the database table name from the configuration options file."""
-    logging.debug(
-        "get_target_table called"
-    )  # This only gets logged the first time the function is called and proves that memoization is functioning.
     with open("config.json", "r") as f:
         config = json.load(f)
+    logging.debug(
+        "Read the configuration options file."
+    )  # This only gets logged the first time the function is called and proves that memoization is functioning.
     target_table = config["table_names_map"]["game_info"]
     return target_table
 
