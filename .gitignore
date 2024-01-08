@@ -1,3 +1,4 @@
 .vscode/
 *.pyc
 tests/pytest.ini
+config.json
