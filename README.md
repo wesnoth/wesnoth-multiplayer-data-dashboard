@@ -173,7 +173,7 @@ To serve this app to end users, it is recommended to use a WSGI server such as [
 With Gunicorn, the app can be served using the following command:
 
 ```bash
-gunicorn --bind :$PORT app:server
+gunicorn --bind 0.0.0.0:$PORT app:server
 ```
 
 The command indicates that the `server` variable in the `app.py` file is the WSGI entry point. `$PORT` specifies the port number.
