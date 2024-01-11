@@ -56,9 +56,38 @@ The app fetches raw data from a MariaDB database. For development purposes, you 
 
 6. Using the MariaDB CLI or a GUI tool such as [HeidiSQL](https://www.heidisql.com/), verify that the database was created successfully and that the tables and data were imported correctly.
 
-#### Set Environment Variables
+#### Set App Configuration Options
 
-The app reads database credentials from environment variables. The following environment variables must be set:
+The app looks for a file called `config.json` containing launch options in the root folder of the repository.
+
+`config.json`:
+
+```json
+{
+    "user": "<your_username>",
+    "password": "<your_password>",
+    "host": "<your_host>",
+    "port": "<your_port>",
+    "database": "<your_database>",    
+    "url_base_pathname": "<your_url_base_pathname>",
+    "table_names_map": {
+        "game_info": "<your_game_info_table>",
+        "game_content_info": "<your_game_content_info_table>",
+        "game_player_info": "<your_game_player_info_table>"
+    }
+}
+```
+
+__*The `url_base_pathname` must start and end with "/". This field is optional and defaults to "/" when undeclared.__
+
+__*This file is not tracked in Git.__
+
+You can also use environment variables in place of `config.json`, as specified in the next section.
+
+#### Using Environment Variables for Database Credentials (Optional)
+
+Environment variables instead of `db_config.json` may optionally be used for the database credentials.
+The following environment variables must be set:
 
 | Variable     | Description                                      |
 |--------------|--------------------------------------------------|
@@ -66,7 +95,7 @@ The app reads database credentials from environment variables. The following env
 | `DB_PORT`    | The port of the database server.                 |
 | `DB_USER`    | The username to use to connect to the database.  |
 | `DB_PASSWORD`| The password to use to connect to the database.  |
-| `DB_DATABASE`    | The name of the database to connect to.          |
+| `DB_DATABASE`| The name of the database to connect to.          |
 
 It is up to you to determine how to set these environment variables. One example is provided below.
 
@@ -129,7 +158,7 @@ The following pytest plugins are used:
 | --- | --- |
 | [pytest-mock](https://pytest-mock.readthedocs.io/en/latest/) | Provides a `mocker` fixture that is used to mock functions and classes. |
 | [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) | (Optional Use). Generates coverage reports. |
-| [pytest-env](https://github.com/pytest-dev/pytest-env) | You need to use this to set environment variables during test. The same variables that you set in order to run the app can also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
+| [pytest-env](https://github.com/pytest-dev/pytest-env) | (Optional Use). If you are not using the .json files for app configuration, you need to use this to set environment variables during test. The same variables that you set in order to run the app can also be used for testing. See the [pytest readme](https://github.com/pytest-dev/pytest-env) on how to use this. The `pytest.ini` file is in the `.gitignore` list.|
 
 ## Deployment
 
@@ -144,7 +173,7 @@ To serve this app to end users, it is recommended to use a WSGI server such as [
 With Gunicorn, the app can be served using the following command:
 
 ```bash
-gunicorn main:server
+gunicorn --bind 0.0.0.0:$PORT app:server
 ```
 
-The command indicates that the `server` variable in the `main.py` file is the WSGI entry point.
+The command indicates that the `server` variable in the `app.py` file is the WSGI entry point. `$PORT` specifies the port number.

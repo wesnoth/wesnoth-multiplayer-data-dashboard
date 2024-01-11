@@ -1,17 +1,65 @@
+"""
+This script creates and runs the Dash application for the Wesnoth MP Database Dashboard.
+
+Usage:
+
+For development:
+    Run `python app.py` to start the development server.
+
+For production:
+    Run `gunicorn --bind :$PORT app:server` to start the production server, where $PORT specifies the port number.
+
+Note: Gunicorn only runs on Linux/Unix systems. For Windows, use `waitress` instead, or use a Linux container/VM to run Gunicorn.
+"""
+
+import json
 import logging
 import os
 import sys
 
-import dash_bootstrap_components as dbc
 import mariadb
 import plotly.express as px
-from dash import Dash, Input, Output, State, callback, dcc, html
+from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
+from flask_caching import Cache
+
+from layout import create_app
+
+
+app = create_app()
+server = app.server
+
+# Set up Flask-Caching for sharing data between callbacks
+# Refer to the documentation for more information:
+# Dash documentation: https://dash.plotly.com/sharing-data-between-callbacks
+# Flask-Caching documentation: https://flask-caching.readthedocs.io/en/latest/
+CACHE_CONFIG = {
+    "CACHE_TYPE": "SimpleCache",  # SimpleCache stores cached data in memory as a Dictionary.
+}
+cache = Cache()
+cache.init_app(app.server, config=CACHE_CONFIG)
+
+
+@cache.memoize()
+def get_target_table():
+    """Fetches and returns the database table name from the configuration options file."""
+    with open("config.json", "r") as f:
+        config = json.load(f)
+    logging.debug(
+        "Read the configuration options file."
+    )  # This only gets logged the first time the function is called and proves that memoization is functioning.
+    target_table = config["table_names_map"]["game_info"]
+    return target_table
 
 
 def connect_to_mariadb():
     """
-    Connects to a MariaDB database using environment variables for authentication.
+    Connects to a MariaDB database using defaults, a .json file, or environment variables, for authentication.
+
+    The function first sets default configuration.
+    Then it tries to load configuration from a .json file.
+    Then it tries to load configuration from environment variables.
+    Finally, it tries to load configuration from command line parameters.
 
     Returns:
     mariadb.connection: A connection object representing the database connection.
@@ -20,210 +68,50 @@ def connect_to_mariadb():
     mariadb.Error: An error occurred while connecting to the database.
     """
     try:
-        connection = mariadb.connect(
-            user=os.environ["DB_USER"],
-            password=os.environ["DB_PASSWORD"],
-            host=os.environ["DB_HOST"],
-            port=int(os.environ["DB_PORT"]),
-            database=os.environ["DB_DATABASE"],
+        # Set default configuration
+        config = {
+            "user": None,
+            "password": None,
+            "host": "127.0.0.1",
+            "port": 3306,
+            "database": None,
+        }
+        print(config)
+
+        # Try to load configuration from .json file
+        if os.path.isfile("config.json"):
+            with open("config.json", "r") as f:
+                file_config = json.load(f)
+                # Only update config with values that are not None and exist in the default configuration
+                config.update(
+                    {
+                        key: value
+                        for key, value in file_config.items()
+                        if value is not None and key in config
+                    }
+                )
+        print(config)
+
+        # Try to load configuration from environment variables
+        env_config = {
+            "user": os.environ.get("DB_USER"),
+            "password": os.environ.get("DB_PASSWORD"),
+            "host": os.environ.get("DB_HOST"),
+            "port": int(os.environ.get("DB_PORT"))
+            if os.environ.get("DB_PORT")
+            else None,
+            "database": os.environ.get("DB_DATABASE"),
+        }
+        # Only update config with values that are not None
+        config.update(
+            {key: value for key, value in env_config.items() if value is not None}
         )
+
+        connection = mariadb.connect(**config)
         return connection
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
         sys.exit(1)
-
-
-def create_app():
-    """
-    Creates a Dash web application instance for the Wesnoth Multiplayer Dashboard.
-
-    This function initializes a Dash web application instance with external stylesheets,
-    meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
-    It also fetches column names from the 'wesnothd_game_info' table in a MariaDB database
-    to dynamically generate the dashboard's layout.
-
-    Returns:
-        Dash: A Dash web application instance.
-    """
-    app = Dash(
-        __name__,
-        external_stylesheets=[
-            dbc.themes.BOOTSTRAP,
-            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
-        ],
-        title="Wesnoth Multiplayer Dashboard",
-        meta_tags=[
-            {
-                "name": "description",
-                "content": "A dashboard for a database of Wesnoth multiplayer games.",
-            }
-        ],
-    )
-
-    app.layout = create_app_layout()
-    return app
-
-
-def create_app_layout():
-    """
-    Creates the layout for the Wesnoth Multiplayer Dashboard web application.
-
-    This function defines the structure of the dashboard's user interface, including
-    the title, user guide modal, date picker, data table, charts, and footer.
-
-    Args:
-        column_names (list): A list of column names for the data table.
-
-    Returns:
-        The Dash web application layout.
-    """
-    with open("./assets/markdown/footer_technology_stack.md", "r") as file:
-        footer_technology_stack_markdown = file.read()
-
-    with open("./assets/markdown/user_guide.md", "r") as file:
-        user_guide_markdown = file.read()
-
-    def create_donut_chart_column(figure_id):
-        donut_column = dbc.Col(
-            dbc.Card(
-                dcc.Loading(dbc.CardBody(dcc.Graph(id=figure_id))),
-                className="shadow-sm mb-4 bg-white rounded",
-            ),
-            sm=12,
-            lg=4,
-        )
-        return donut_column
-
-    layout = html.Div(
-        id="top-level-container",
-        children=[
-            html.Div(
-                id="title-container",
-                children=[
-                    html.H1("Wesnoth Multiplayer Data"),
-                    dbc.Button(
-                        children=[
-                            html.I(className="fa fa-question-circle"),
-                            "  User Guide",
-                        ],
-                        color="primary",
-                        id="user-guide-button",
-                        n_clicks=0,
-                    ),
-                    dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("User Guide")),
-                            dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
-                            dbc.ModalFooter(
-                                dbc.Button(
-                                    "Close",
-                                    id="close-button",
-                                    className="ms-auto",
-                                    n_clicks=0,
-                                )
-                            ),
-                        ],
-                        id="modal",
-                        is_open=False,
-                        size="xl",
-                    ),
-                ],
-                className="d-flex align-items-center justify-content-between",
-            ),
-            html.Div(
-                id="content-container",
-                children=[
-                    html.Div(
-                        id="date-picker-container",
-                        children=[
-                            html.Label(
-                                id="date-picker-label", children="Specify a Date Range"
-                            ),
-                            dcc.DatePickerRange(id="date-picker"),
-                        ],
-                    ),
-                    dbc.Row(
-                        children=[
-                            dbc.Col(
-                                dbc.Card(
-                                    dcc.Loading(
-                                        dbc.CardBody(
-                                            [
-                                                html.H5(
-                                                    "Total Number of Games",
-                                                    className="card-title",
-                                                ),
-                                                html.P(
-                                                    id="total-games-value",
-                                                    className="card-text",
-                                                ),
-                                            ]
-                                        )
-                                    ),
-                                    className="shadow-sm mb-4 bg-white rounded mt-4",
-                                    id="total-games-card",
-                                ),
-                                lg=2,
-                            ),
-                        ]
-                    ),
-                    html.Div(
-                        [
-                            html.Div(
-                                id="donut-charts-container",
-                                children=[
-                                    dbc.Row(
-                                        [
-                                            create_donut_chart_column(
-                                                "instance_version-chart"
-                                            ),
-                                            create_donut_chart_column("oos-chart"),
-                                            create_donut_chart_column("reload-chart"),
-                                        ]
-                                    ),
-                                    dbc.Row(
-                                        [
-                                            create_donut_chart_column(
-                                                "observers-chart"
-                                            ),
-                                            create_donut_chart_column("password-chart"),
-                                            create_donut_chart_column("public-chart"),
-                                        ]
-                                    ),
-                                ],
-                            ),
-                        ]
-                    ),
-                ],
-            ),
-            html.Footer(
-                id="footer-container",
-                children=html.Div(
-                    children=[
-                        dcc.Markdown(
-                            id="plotly-dash-credit",
-                            children=footer_technology_stack_markdown,
-                            link_target="_blank",
-                        ),
-                        dbc.Button(
-                            id="download-link",
-                            children=html.Div(
-                                [
-                                    html.I(className="fa fa-github"),
-                                    "  View Source Code on GitHub ",
-                                    html.I(className="fa fa-external-link"),
-                                ]
-                            ),
-                            color="primary",
-                            href="https://github.com/wesnoth/wesnoth-multiplayer-data-dashboard",
-                            target="_blank",
-                        ),
-                    ],
-                ),
-            ),
-        ],
-    )
-    return layout
 
 
 """ Callback functions start here """
@@ -256,7 +144,7 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -292,7 +180,7 @@ def update_instance_version_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -345,7 +233,7 @@ def update_oos_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -402,7 +290,7 @@ def update_reload_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -459,7 +347,7 @@ def update_observers_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -516,7 +404,7 @@ def update_password_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -573,7 +461,7 @@ def update_public_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = "wesnothd_game_info"
+    target_table = get_target_table()
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
@@ -646,8 +534,7 @@ def main():
         format="%(asctime)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    app = create_app()
-    app.run(debug=True, dev_tools_prune_errors=False)
+    app.run(debug=True, dev_tools_prune_errors=False, threaded=False)
 
 
 if __name__ == "__main__":
