@@ -4,7 +4,7 @@ from dash import html
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-dash.register_page(__name__, path="/statistics")
+dash.register_page(__name__, path="/")
 
 
 def create_donut_chart_column(figure_id):
