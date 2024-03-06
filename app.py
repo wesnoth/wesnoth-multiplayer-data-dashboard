@@ -76,7 +76,6 @@ def connect_to_mariadb():
             "port": 3306,
             "database": None,
         }
-        print(config)
 
         # Try to load configuration from .json file
         if os.path.isfile("config.json"):
@@ -90,7 +89,6 @@ def connect_to_mariadb():
                         if value is not None and key in config
                     }
                 )
-        print(config)
 
         # Try to load configuration from environment variables
         env_config = {
