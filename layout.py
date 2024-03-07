@@ -63,35 +63,51 @@ def create_app_layout():
             html.Div(
                 id="title-container",
                 children=[
-                    html.H1("Wesnoth Multiplayer Data"),
-                    dbc.Button(
+                    html.Div(
                         children=[
-                            html.I(className="fa fa-question-circle"),
-                            "  User Guide",
-                        ],
-                        color="primary",
-                        id="user-guide-button",
-                        n_clicks=0,
-                    ),
-                    dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("User Guide")),
-                            dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
-                            dbc.ModalFooter(
-                                dbc.Button(
-                                    "Close",
-                                    id="close-button",
-                                    className="ms-auto",
-                                    n_clicks=0,
-                                )
+                            html.H1("Wesnoth Multiplayer Data"),
+                            dbc.Button(
+                                children=[
+                                    html.I(className="fa fa-question-circle"),
+                                    "  User Guide",
+                                ],
+                                color="primary",
+                                id="user-guide-button",
+                                n_clicks=0,
                             ),
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(dbc.ModalTitle("User Guide")),
+                                    dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
+                                    dbc.ModalFooter(
+                                        dbc.Button(
+                                            "Close",
+                                            id="close-button",
+                                            className="ms-auto",
+                                            n_clicks=0,
+                                        )
+                                    ),
+                                ],
+                                id="modal",
+                                is_open=False,
+                                size="xl",
+                            ),                            
                         ],
-                        id="modal",
-                        is_open=False,
-                        size="xl",
+                        className="d-flex align-items-center justify-content-between",
                     ),
+                    html.Nav(
+                        id="navbar",
+                        children=[
+                            html.Ul(
+                                id="nav-list",
+                                children=[
+                                    html.Li(dcc.Link("Statistics", href="/dashboard/")),
+                                    html.Li(dcc.Link("Query", href="/dashboard/query")),
+                                ]
+                            )
+                        ],
+                    )
                 ],
-                className="d-flex align-items-center justify-content-between",
             ),
             dash.page_container,
             html.Footer(
