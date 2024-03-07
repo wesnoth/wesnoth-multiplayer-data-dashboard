@@ -18,6 +18,7 @@ import os
 import sys
 
 import mariadb
+import pandas as pd
 import plotly.express as px
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
@@ -493,6 +494,84 @@ def update_public_chart(start_date, end_date):
         )
     )
     figure.update_traces(hovertemplate="<b>%{label}</b><br>%{value:,}")
+    return figure
+
+
+@callback(
+    Output('table', 'data'),
+    Input('date-picker', 'start_date'),
+    Input('date-picker', 'end_date'),
+    prevent_initial_call=True
+)
+def update_table(start_date, end_date):
+    """
+    Update the table with data from the database based on the selected date range.
+
+    Args:
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
+
+    Returns:
+        list[dict]: A list of dictionaries containing the data to be displayed in the table.
+    """
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        raise PreventUpdate
+
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    cursor.execute(
+        "SELECT * FROM tmp_game_info WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
+    columns = [i[0] for i in cursor.description]
+    df = (
+        pd.DataFrame(cursor.fetchall(), columns=columns)
+        .map(lambda x: x[0] if type(x) is bytes else x)
+        .assign(
+            START_TIME=lambda x: pd.to_datetime(x['START_TIME']),
+            END_TIME=lambda x: pd.to_datetime(x['END_TIME']),
+            # Calculate the game duration in minutes.
+            GAME_DURATION=lambda x: (
+                x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
+        )
+    )
+    cursor.close()
+    mariadb_connection.close()
+    logging.debug('Fetched data for table from database')
+    return df.to_dict('records')
+
+
+@callback(
+    Output('game-duration-histogram', 'figure'),
+    Input('table', 'data'),
+    State('table', 'columns'),
+)
+def update_game_duration_histogram(data, columns):
+    """
+    Update the game-duration-histogram whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated game-duration-histogram.
+    """
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
+    figure = px.histogram(
+        df,
+        x='GAME_DURATION',
+        title='Game Duration (minutes)',
+        labels={'GAME_DURATION': 'Duration (minutes)'},
+        histnorm='percent',
+    ).update_traces(
+        marker_line_width=1,
+        marker_line_color="white"
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
     return figure
 
 
