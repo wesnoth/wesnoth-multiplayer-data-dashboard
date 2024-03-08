@@ -135,6 +135,15 @@ def create_app_layout():
                     ],
                 ),
             ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Query size Too Large")),
+                    dbc.ModalBody("Due to server hardware constraints, the maximum query output size has been limited to 5000 total games. Please reduce the range of your query."),
+                ],
+                id="constraints-modal",
+                is_open=False,
+                size="s",
+            ),
         ],
     )
     return layout

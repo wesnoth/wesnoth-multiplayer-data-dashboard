@@ -498,12 +498,14 @@ def update_public_chart(start_date, end_date):
 
 
 @callback(
-    Output('table', 'data'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'),
+    Output("table", "data"),
+    Output("constraints-modal", "is_open"),
+    Input("total-games-value", "children"),
+    State('date-picker', 'start_date'),
+    State('date-picker', 'end_date'),
     prevent_initial_call=True
 )
-def update_table(start_date, end_date):
+def update_table(total_games, start_date, end_date):
     """
     Update the table with data from the database based on the selected date range.
 
@@ -517,6 +519,10 @@ def update_table(start_date, end_date):
     # Validate that both start_date and end_date are not None.
     if start_date is None or end_date is None:
         raise PreventUpdate
+    
+    # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
+    if int(total_games.replace(",", "")) > 5000:
+        return [], True
 
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
@@ -537,7 +543,7 @@ def update_table(start_date, end_date):
     cursor.close()
     mariadb_connection.close()
     logging.debug('Fetched data for table from database')
-    return df.to_dict('records')
+    return df.to_dict('records'), False
 
 
 @callback(
@@ -581,7 +587,7 @@ def update_game_duration_histogram(data, columns):
     Input("close-button", "n_clicks"),
     State("modal", "is_open"),
 )
-def toggle_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
+def toggle_user_guide_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
     """
     Toggles the state of the modal based on the user-guide-button clicks and close-button clicks.
 
