@@ -1,11 +1,8 @@
-import dash
-from dash import html
-
 import dash_bootstrap_components as dbc
-from dash import dcc, html, dash_table
+from dash import dcc, html, dash_table, register_page
 
 
-dash.register_page(__name__, path="/query")
+register_page(__name__, path="/query")
 
 
 column_names = [
