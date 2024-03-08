@@ -6,18 +6,18 @@ register_page(__name__, path="/query")
 
 
 column_names = [
-    'INSTANCE_UUID', 
-    'GAME_ID', 
-    'INSTANCE_VERSION', 
-    'GAME_NAME', 
-    'START_TIME', 
-    'END_TIME', 
-    'REPLAY_NAME', 
-    'OOS', 
-    'RELOAD', 
-    'OBSERVERS', 
-    'PASSWORD', 
-    'PUBLIC', 
+    'INSTANCE_UUID',
+    'GAME_ID',
+    'INSTANCE_VERSION',
+    'GAME_NAME',
+    'START_TIME',
+    'END_TIME',
+    'REPLAY_NAME',
+    'OOS',
+    'RELOAD',
+    'OBSERVERS',
+    'PASSWORD',
+    'PUBLIC',
     'GAME_DURATION',
 ]
 
