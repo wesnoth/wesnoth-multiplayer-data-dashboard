@@ -1,5 +1,6 @@
 import json
 
+import dash
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
 
@@ -33,6 +34,7 @@ def create_app():
             }
         ],
         url_base_pathname=url_base_pathname,
+        use_pages=True,
     )
 
     app.layout = create_app_layout()
@@ -54,17 +56,6 @@ def create_app_layout():
 
     with open("./assets/markdown/user_guide.md", "r") as file:
         user_guide_markdown = file.read()
-
-    def create_donut_chart_column(figure_id):
-        donut_column = dbc.Col(
-            dbc.Card(
-                dcc.Loading(dbc.CardBody(dcc.Graph(id=figure_id))),
-                className="shadow-sm mb-4 bg-white rounded",
-            ),
-            sm=12,
-            lg=4,
-        )
-        return donut_column
 
     layout = html.Div(
         id="top-level-container",
@@ -102,72 +93,7 @@ def create_app_layout():
                 ],
                 className="d-flex align-items-center justify-content-between",
             ),
-            html.Div(
-                id="content-container",
-                children=[
-                    html.Div(
-                        id="date-picker-container",
-                        children=[
-                            html.Label(
-                                id="date-picker-label", children="Specify a Date Range"
-                            ),
-                            dcc.DatePickerRange(id="date-picker"),
-                        ],
-                    ),
-                    dbc.Row(
-                        children=[
-                            dbc.Col(
-                                dbc.Card(
-                                    dcc.Loading(
-                                        dbc.CardBody(
-                                            [
-                                                html.H5(
-                                                    "Total Number of Games",
-                                                    className="card-title",
-                                                ),
-                                                html.P(
-                                                    id="total-games-value",
-                                                    className="card-text",
-                                                ),
-                                            ]
-                                        )
-                                    ),
-                                    className="shadow-sm mb-4 bg-white rounded mt-4",
-                                    id="total-games-card",
-                                ),
-                                lg=2,
-                            ),
-                        ]
-                    ),
-                    html.Div(
-                        [
-                            html.Div(
-                                id="donut-charts-container",
-                                children=[
-                                    dbc.Row(
-                                        [
-                                            create_donut_chart_column(
-                                                "instance_version-chart"
-                                            ),
-                                            create_donut_chart_column("oos-chart"),
-                                            create_donut_chart_column("reload-chart"),
-                                        ]
-                                    ),
-                                    dbc.Row(
-                                        [
-                                            create_donut_chart_column(
-                                                "observers-chart"
-                                            ),
-                                            create_donut_chart_column("password-chart"),
-                                            create_donut_chart_column("public-chart"),
-                                        ]
-                                    ),
-                                ],
-                            ),
-                        ]
-                    ),
-                ],
-            ),
+            dash.page_container,
             html.Footer(
                 id="footer-container",
                 children=html.Div(
