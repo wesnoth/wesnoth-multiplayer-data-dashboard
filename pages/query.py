@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html, dash_table, register_page
 
 
-register_page(__name__, path="/query")
+register_page(__name__, path="/query", title="Query")
 
 
 column_names = [
