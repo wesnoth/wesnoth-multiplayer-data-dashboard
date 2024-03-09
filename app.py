@@ -116,6 +116,8 @@ def connect_to_mariadb():
 """ Callback functions start here """
 
 
+"""Statistics Page Callbacks"""
+
 @callback(
     Output("total-games-value", "children"),
     Input("date-picker", "start_date"),
@@ -497,12 +499,54 @@ def update_public_chart(start_date, end_date):
     return figure
 
 
+"""Query Page Callbacks"""
+
+@callback(
+    Output("total-games-value-query", "children"),
+    Input("date-picker-query", "start_date"),
+    Input("date-picker-query", "end_date"),
+    prevent_initial_call=True,
+)
+def update_total_games_value(start_date, end_date):
+    """
+    Updates the total-games-value card displayed on the dashboard.
+
+    When the date range is changed, this function fetches the total count of games played in the given date range from the database,
+    formats it to have comma separators, and returns it to be displayed on the dashboard.
+
+    Args:
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
+
+    Returns:
+        str: The count of total games formatted to have comma separators.
+    """
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        raise PreventUpdate
+
+    # Fetch the total count of games played in the given date range from the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = get_target_table()
+    cursor.execute(
+        f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
+        (start_date, end_date),
+    )
+    logging.debug(f"Fetched the count of total games from {target_table} from database")
+    games_count = cursor.fetchone()[0]
+    cursor.close()
+    mariadb_connection.close()
+
+    return f"{games_count:,}"
+
+
 @callback(
     Output("table", "data"),
     Output("constraints-modal", "is_open"),
-    Input("total-games-value", "children"),
-    State('date-picker', 'start_date'),
-    State('date-picker', 'end_date'),
+    Input("total-games-value-query", "children"),
+    State('date-picker-query', 'start_date'),
+    State('date-picker-query', 'end_date'),
     prevent_initial_call=True
 )
 def update_table(total_games, start_date, end_date):
@@ -580,6 +624,8 @@ def update_game_duration_histogram(data, columns):
     )
     return figure
 
+
+"""Page template callbacks (header/footer sections)"""
 
 @callback(
     Output("modal", "is_open"),

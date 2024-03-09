@@ -32,7 +32,7 @@ layout = html.Div(
                     id="date-picker-label",
                     children="Specify a Date Range"
                 ),
-                dcc.DatePickerRange(id='date-picker')
+                dcc.DatePickerRange(id='date-picker-query')
             ]
         ),
         dbc.Row([
@@ -61,7 +61,7 @@ layout = html.Div(
                     dbc.CardBody([
                         html.H5("Total Number of Games",
                                 className="card-title"),
-                        html.P(id="total-games-value",
+                        html.P(id="total-games-value-query",
                                 className="card-text"),
                     ])
                 ),
