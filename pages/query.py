@@ -87,6 +87,7 @@ layout = html.Div(
                     ],
                 )
             ]),
-        ])
+        ]),
+        dcc.Store(id='total-games-integer-value'),
     ]
 ),

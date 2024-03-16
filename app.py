@@ -502,6 +502,7 @@ def update_public_chart(start_date, end_date):
 
 @callback(
     Output("total-games-value-query", "children"),
+    Output("total-games-integer-value", "data"),
     Input("date-picker-query", "start_date"),
     Input("date-picker-query", "end_date"),
     prevent_initial_call=True,
@@ -537,13 +538,13 @@ def update_total_games_value(start_date, end_date):
     cursor.close()
     mariadb_connection.close()
 
-    return f"{games_count:,}"
+    return f"{games_count:,}", games_count
 
 
 @callback(
     Output("table", "data"),
     Output("constraints-modal", "is_open"),
-    Input("total-games-value-query", "children"),
+    Input("total-games-integer-value", 'data'),
     State('date-picker-query', 'start_date'),
     State('date-picker-query', 'end_date'),
     prevent_initial_call=True
@@ -564,9 +565,9 @@ def update_table(total_games, start_date, end_date):
         raise PreventUpdate
     
     query_row_limit = get_config_data()["query_row_limit"]
-    
+
     # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
-    if int(total_games.replace(",", "")) > query_row_limit:
+    if total_games > query_row_limit:
         return [], True
 
     mariadb_connection = connect_to_mariadb()
