@@ -19,6 +19,7 @@ def create_app():
     with open("config.json", "r") as f:
         config = json.load(f)
         url_base_pathname = config["url_base_pathname"]
+        query_row_limit = config["query_row_limit"]
 
     app = Dash(
         __name__,
@@ -37,11 +38,11 @@ def create_app():
         use_pages=True,
     )
 
-    app.layout = create_app_layout()
+    app.layout = create_app_layout(query_row_limit)
     return app
 
 
-def create_app_layout():
+def create_app_layout(query_row_limit):
     """
     Creates the layout for the Wesnoth Multiplayer Dashboard web application.
 
@@ -138,7 +139,7 @@ def create_app_layout():
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Query size Too Large")),
-                    dbc.ModalBody("Due to server hardware constraints, the maximum query output size has been limited to 5000 total games. Please reduce the range of your query."),
+                    dbc.ModalBody(f"Due to server hardware constraints, the maximum query output size has been limited to {query_row_limit} total games. Please reduce the range of your query."),
                 ],
                 id="constraints-modal",
                 is_open=False,

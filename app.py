@@ -42,15 +42,14 @@ cache.init_app(app.server, config=CACHE_CONFIG)
 
 
 @cache.memoize()
-def get_target_table():
-    """Fetches and returns the database table name from the configuration options file."""
+def get_config_data():
+    """Fetches and returns data from the configuration options file as a dictionary."""
     with open("config.json", "r") as f:
         config = json.load(f)
     logging.debug(
         "Read the configuration options file."
     )  # This only gets logged the first time the function is called and proves that memoization is functioning.
-    target_table = config["table_names_map"]["game_info"]
-    return target_table
+    return config
 
 
 def connect_to_mariadb():
@@ -145,7 +144,7 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -181,7 +180,7 @@ def update_instance_version_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -234,7 +233,7 @@ def update_oos_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -291,7 +290,7 @@ def update_reload_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -348,7 +347,7 @@ def update_observers_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -405,7 +404,7 @@ def update_password_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -462,7 +461,7 @@ def update_public_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
@@ -528,7 +527,7 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -564,13 +563,15 @@ def update_table(total_games, start_date, end_date):
     if start_date is None or end_date is None:
         raise PreventUpdate
     
+    query_row_limit = get_config_data()["query_row_limit"]
+    
     # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
-    if int(total_games.replace(",", "")) > 5000:
+    if int(total_games.replace(",", "")) > query_row_limit:
         return [], True
 
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
     columns = [i[0] for i in cursor.description]
