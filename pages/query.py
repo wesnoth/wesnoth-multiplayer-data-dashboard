@@ -25,14 +25,34 @@ column_names = [
 layout = html.Div(
     id='content-container',
     children=[
-        html.Div(
-            id='date-picker-container',
+        dbc.Row(
+            id="content-first-row",
             children=[
-                html.Label(
-                    id="date-picker-label",
-                    children="Specify a Date Range"
+                dbc.Col(
+                    id="date-picker-container",
+                    children=[
+                        html.Label(
+                            id="date-picker-label",
+                            children="Specify a Date Range"
+                        ),
+                        dcc.DatePickerRange(id='date-picker-query')
+                    ]
                 ),
-                dcc.DatePickerRange(id='date-picker-query')
+                dbc.Col(
+                    dbc.Card(
+                        dcc.Loading(
+                            dbc.CardBody([
+                                html.H5("Total Number of Games",
+                                        className="card-title"),
+                                html.P(id="total-games-value-query",
+                                        className="card-text"),
+                            ])
+                        ),
+                        className="shadow-sm bg-white rounded",
+                        id='total-games-card'
+                    ),
+                    lg=2,
+                ),
             ]
         ),
         dbc.Row([
@@ -55,21 +75,6 @@ layout = html.Div(
                 ),
             )
         ]),
-        dbc.Col(
-            dbc.Card(
-                dcc.Loading(
-                    dbc.CardBody([
-                        html.H5("Total Number of Games",
-                                className="card-title"),
-                        html.P(id="total-games-value-query",
-                                className="card-text"),
-                    ])
-                ),
-                className="shadow-sm mb-4 bg-white rounded mt-4",
-                id='total-games-card'
-            ),
-            lg=2,
-        ),
         html.Div([
             dbc.Row([
                 dbc.Col(

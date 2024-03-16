@@ -22,17 +22,19 @@ def create_donut_chart_column(figure_id):
 layout = html.Div(
     id="content-container",
     children=[
-        html.Div(
-            id="date-picker-container",
-            children=[
-                html.Label(
-                    id="date-picker-label", children="Specify a Date Range"
-                ),
-                dcc.DatePickerRange(id="date-picker"),
-            ],
-        ),
         dbc.Row(
+            id="content-first-row",
+            className="mb-4",
             children=[
+                dbc.Col(
+                    id="date-picker-container",
+                    children=[
+                        html.Label(
+                            id="date-picker-label", children="Specify a Date Range"
+                        ),
+                        dcc.DatePickerRange(id="date-picker"),
+                    ],
+                ),
                 dbc.Col(
                     dbc.Card(
                         dcc.Loading(
@@ -49,7 +51,7 @@ layout = html.Div(
                                 ]
                             )
                         ),
-                        className="shadow-sm mb-4 bg-white rounded mt-4",
+                        className="shadow-sm bg-white rounded",
                         id="total-games-card",
                     ),
                     lg=2,
