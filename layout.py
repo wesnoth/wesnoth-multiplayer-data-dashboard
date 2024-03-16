@@ -38,11 +38,11 @@ def create_app():
         use_pages=True,
     )
 
-    app.layout = create_app_layout(query_row_limit)
+    app.layout = create_app_layout(query_row_limit, url_base_pathname)
     return app
 
 
-def create_app_layout(query_row_limit):
+def create_app_layout(query_row_limit, url_base_pathname):
     """
     Creates the layout for the Wesnoth Multiplayer Dashboard web application.
 
@@ -102,8 +102,8 @@ def create_app_layout(query_row_limit):
                             html.Ul(
                                 id="nav-list",
                                 children=[
-                                    html.Li(dcc.Link("Statistics", href="/dashboard/")),
-                                    html.Li(dcc.Link("Query", href="/dashboard/query")),
+                                    html.Li(dcc.Link("Statistics", href=url_base_pathname)),
+                                    html.Li(dcc.Link("Query", href=f"{url_base_pathname}query")),
                                 ]
                             )
                         ],
