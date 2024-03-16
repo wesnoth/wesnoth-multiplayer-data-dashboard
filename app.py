@@ -570,8 +570,9 @@ def update_table(total_games, start_date, end_date):
 
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
+    target_table = get_target_table()
     cursor.execute(
-        "SELECT * FROM tmp_game_info WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
+        f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
     columns = [i[0] for i in cursor.description]
     df = (
         pd.DataFrame(cursor.fetchall(), columns=columns)
