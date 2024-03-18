@@ -19,7 +19,7 @@ def create_app():
     with open("config.json", "r") as f:
         config = json.load(f)
         url_base_pathname = config["url_base_pathname"]
-        query_row_limit = config["query_row_limit"]
+        query_row_limit = config.get("query_row_limit", 5000)
 
     app = Dash(
         __name__,

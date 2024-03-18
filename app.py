@@ -564,7 +564,7 @@ def update_table(total_games, start_date, end_date):
     if start_date is None or end_date is None:
         raise PreventUpdate
     
-    query_row_limit = get_config_data()["query_row_limit"]
+    query_row_limit = get_config_data().get("query_row_limit", 5000)
 
     # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
     if total_games > query_row_limit:
