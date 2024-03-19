@@ -57,8 +57,8 @@ def connect_to_mariadb():
     Connects to a MariaDB database using defaults, a .json file, or environment variables, for authentication.
 
     The function first sets default configuration.
-    Then it tries to load configuration from a .json file.
-    Then it tries to load configuration from environment variables.
+    Then, it tries to load configuration from a .json file.
+    Then, it tries to load configuration from environment variables.
     Finally, it tries to load configuration from command line parameters.
 
     Returns:
