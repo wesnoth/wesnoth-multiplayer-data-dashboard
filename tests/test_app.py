@@ -2,7 +2,7 @@ import pytest
 from dash.exceptions import PreventUpdate
 
 from app import (
-    toggle_modal,
+    toggle_user_guide_modal,
     update_instance_version_chart,
     update_oos_chart,
     update_reload_chart,
@@ -18,7 +18,7 @@ class TestUpdateTotalGamesValue:
         # Arrange
         start_date = "2022-02-01"
         end_date = "2022-02-28"
-        expected_total_games_value = "1,373"
+        expected_total_games_value = ("1,373", 1373)
 
         # Act
         total_games_value = update_total_games_value(start_date, end_date)
@@ -30,7 +30,7 @@ class TestUpdateTotalGamesValue:
         # Arrange
         start_date = "2023-12-01"
         end_date = "2023-12-22"
-        expected_total_games_value = "0"
+        expected_total_games_value = ("0", 0)
 
         # Act
         total_games_value = update_total_games_value(start_date, end_date)
@@ -146,6 +146,6 @@ def test_toggle_modal(
     user_guide_button_clicks, close_button_clicks, is_modal_open, expected_is_modal_open
 ):
     assert (
-        toggle_modal(user_guide_button_clicks, close_button_clicks, is_modal_open)
+        toggle_user_guide_modal(user_guide_button_clicks, close_button_clicks, is_modal_open)
         == expected_is_modal_open
     )
