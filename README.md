@@ -80,6 +80,8 @@ The app looks for a file called `config.json` containing launch options in the r
 
 __*The `url_base_pathname` must start and end with "/". This field is optional and defaults to "/" when undeclared.__
 
+__*It's better for `port` to be an integer instead of a string with quotes so that if you run `pytest`, the tests will be able to connect to the database.__
+
 __*This file is not tracked in Git.__
 
 You can also use environment variables in place of `config.json`, as specified in the next section.
@@ -145,6 +147,9 @@ The [Callback Graph](https://dash.plotly.com/devtools#callback-graph) makes it e
 ## Testing
 
 The `tests/` directory contains tests for the app. The tests are written using [pytest](https://docs.pytest.org/). To run the tests, use
+
+The `port` in `config.json` should be an integer and not a string with quotes for the tests to be able to connect to the database.
+For example: 3306 instead of "3306" 
 
 ```bash
 pytest

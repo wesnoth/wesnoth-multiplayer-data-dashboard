@@ -18,6 +18,7 @@ import os
 import sys
 
 import mariadb
+import pandas as pd
 import plotly.express as px
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
@@ -41,15 +42,14 @@ cache.init_app(app.server, config=CACHE_CONFIG)
 
 
 @cache.memoize()
-def get_target_table():
-    """Fetches and returns the database table name from the configuration options file."""
+def get_config_data():
+    """Fetches and returns data from the configuration options file as a dictionary."""
     with open("config.json", "r") as f:
         config = json.load(f)
     logging.debug(
         "Read the configuration options file."
     )  # This only gets logged the first time the function is called and proves that memoization is functioning.
-    target_table = config["table_names_map"]["game_info"]
-    return target_table
+    return config
 
 
 def connect_to_mariadb():
@@ -115,6 +115,8 @@ def connect_to_mariadb():
 """ Callback functions start here """
 
 
+"""Statistics Page Callbacks"""
+
 @callback(
     Output("total-games-value", "children"),
     Input("date-picker", "start_date"),
@@ -142,7 +144,7 @@ def update_total_games_value(start_date, end_date):
     # Fetch the total count of games played in the given date range from the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -178,7 +180,7 @@ def update_instance_version_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -231,7 +233,7 @@ def update_oos_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -288,7 +290,7 @@ def update_reload_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -345,7 +347,7 @@ def update_observers_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -402,7 +404,7 @@ def update_password_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -459,7 +461,7 @@ def update_public_chart(start_date, end_date):
     # Query the database.
     mariadb_connection = connect_to_mariadb()
     cursor = mariadb_connection.cursor()
-    target_table = get_target_table()
+    target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
@@ -496,13 +498,145 @@ def update_public_chart(start_date, end_date):
     return figure
 
 
+"""Query Page Callbacks"""
+
+@callback(
+    Output("total-games-value-query", "children"),
+    Output("total-games-integer-value", "data"),
+    Input("date-picker-query", "start_date"),
+    Input("date-picker-query", "end_date"),
+    prevent_initial_call=True,
+)
+def update_total_games_value(start_date, end_date):
+    """
+    Updates the total-games-value card displayed on the dashboard.
+
+    When the date range is changed, this function fetches the total count of games played in the given date range from the database,
+    formats it to have comma separators, and returns it to be displayed on the dashboard.
+
+    Args:
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
+
+    Returns:
+        str: The count of total games formatted to have comma separators.
+    """
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        raise PreventUpdate
+
+    # Fetch the total count of games played in the given date range from the database.
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = get_config_data()["table_names_map"]["game_info"]
+    cursor.execute(
+        f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
+        (start_date, end_date),
+    )
+    logging.debug(f"Fetched the count of total games from {target_table} from database")
+    games_count = cursor.fetchone()[0]
+    cursor.close()
+    mariadb_connection.close()
+
+    return f"{games_count:,}", games_count
+
+
+@callback(
+    Output("table", "data"),
+    Output("constraints-modal", "is_open"),
+    Input("total-games-integer-value", 'data'),
+    State('date-picker-query', 'start_date'),
+    State('date-picker-query', 'end_date'),
+    prevent_initial_call=True
+)
+def update_table(total_games, start_date, end_date):
+    """
+    Update the table with data from the database based on the selected date range.
+
+    Args:
+        start_date (str): The start date of the selected date range.
+        end_date (str): The end date of the selected date range.
+
+    Returns:
+        list[dict]: A list of dictionaries containing the data to be displayed in the table.
+    """
+    # Validate that both start_date and end_date are not None.
+    if start_date is None or end_date is None:
+        raise PreventUpdate
+    
+    query_row_limit = get_config_data().get("query_row_limit", 5000)
+
+    # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
+    if total_games > query_row_limit:
+        return [], True
+
+    mariadb_connection = connect_to_mariadb()
+    cursor = mariadb_connection.cursor()
+    target_table = get_config_data()["table_names_map"]["game_info"]
+    cursor.execute(
+        f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
+    columns = [i[0] for i in cursor.description]
+    df = (
+        pd.DataFrame(cursor.fetchall(), columns=columns)
+        .map(lambda x: x[0] if type(x) is bytes else x)
+        .assign(
+            START_TIME=lambda x: pd.to_datetime(x['START_TIME']),
+            END_TIME=lambda x: pd.to_datetime(x['END_TIME']),
+            # Calculate the game duration in minutes.
+            GAME_DURATION=lambda x: (
+                x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
+        )
+    )
+    cursor.close()
+    mariadb_connection.close()
+    logging.debug('Fetched data for table from database')
+    return df.to_dict('records'), False
+
+
+@callback(
+    Output('game-duration-histogram', 'figure'),
+    Input('table', 'data'),
+    State('table', 'columns'),
+)
+def update_game_duration_histogram(data, columns):
+    """
+    Update the game-duration-histogram whenever the table data changes.
+
+    Args:
+        data (list[dict]): The data to update the chart with.
+        columns (list[dict]): The columns of the data.
+
+    Returns:
+        plotly.graph_objects.Figure: The updated game-duration-histogram.
+    """
+    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
+    figure = px.histogram(
+        df,
+        x='GAME_DURATION',
+        title='Game Duration (minutes)',
+        labels={'GAME_DURATION': 'Duration (minutes)'},
+        histnorm='percent',
+    ).update_traces(
+        marker_line_width=1,
+        marker_line_color="white"
+    )
+    figure.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+        )
+    )
+    return figure
+
+
+"""Page template callbacks (header/footer sections)"""
+
 @callback(
     Output("modal", "is_open"),
     Input("user-guide-button", "n_clicks"),
     Input("close-button", "n_clicks"),
     State("modal", "is_open"),
 )
-def toggle_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
+def toggle_user_guide_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
     """
     Toggles the state of the modal based on the user-guide-button clicks and close-button clicks.
 

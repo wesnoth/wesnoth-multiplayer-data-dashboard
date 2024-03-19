@@ -29,6 +29,47 @@ h1 {
     margin-bottom: 0;
 }
 
+#nav-list {
+    display: flex;
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#nav-list li {
+    margin-right: 20px;
+}
+
+#nav-list li:last-child {
+    margin-right: 0;
+}
+
+#nav-list li a {
+    text-decoration: none;
+    color: #b48648;
+    font-size: 18px;
+    transition: color 0.3s ease-in-out;
+    font-weight: bold;
+}
+
+#nav-list li a:hover {
+    color: #fff;
+    /* Change the color on hover */
+}
+
+#navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    top: 0px;
+}
+
+/* Content Container First Row */
+#content-first-row {
+    display: flex;
+    justify-content: space-between;
+}
+
 
 /* Date Range Picker */
 .DateRangePicker_1 {
@@ -38,6 +79,7 @@ h1 {
 #date-picker-container {
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 #date-picker-label {

@@ -19,6 +19,7 @@ def create_app():
     with open("config.json", "r") as f:
         config = json.load(f)
         url_base_pathname = config["url_base_pathname"]
+        query_row_limit = config.get("query_row_limit", 5000)
 
     app = Dash(
         __name__,
@@ -37,11 +38,11 @@ def create_app():
         use_pages=True,
     )
 
-    app.layout = create_app_layout()
+    app.layout = create_app_layout(query_row_limit, url_base_pathname)
     return app
 
 
-def create_app_layout():
+def create_app_layout(query_row_limit, url_base_pathname):
     """
     Creates the layout for the Wesnoth Multiplayer Dashboard web application.
 
@@ -63,35 +64,51 @@ def create_app_layout():
             html.Div(
                 id="title-container",
                 children=[
-                    html.H1("Wesnoth Multiplayer Data"),
-                    dbc.Button(
+                    html.Div(
                         children=[
-                            html.I(className="fa fa-question-circle"),
-                            "  User Guide",
-                        ],
-                        color="primary",
-                        id="user-guide-button",
-                        n_clicks=0,
-                    ),
-                    dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("User Guide")),
-                            dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
-                            dbc.ModalFooter(
-                                dbc.Button(
-                                    "Close",
-                                    id="close-button",
-                                    className="ms-auto",
-                                    n_clicks=0,
-                                )
+                            html.H1("Wesnoth Multiplayer Data"),
+                            dbc.Button(
+                                children=[
+                                    html.I(className="fa fa-question-circle"),
+                                    "  User Guide",
+                                ],
+                                color="primary",
+                                id="user-guide-button",
+                                n_clicks=0,
                             ),
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(dbc.ModalTitle("User Guide")),
+                                    dbc.ModalBody(dcc.Markdown(user_guide_markdown)),
+                                    dbc.ModalFooter(
+                                        dbc.Button(
+                                            "Close",
+                                            id="close-button",
+                                            className="ms-auto",
+                                            n_clicks=0,
+                                        )
+                                    ),
+                                ],
+                                id="modal",
+                                is_open=False,
+                                size="xl",
+                            ),                            
                         ],
-                        id="modal",
-                        is_open=False,
-                        size="xl",
+                        className="d-flex align-items-center justify-content-between",
                     ),
+                    html.Nav(
+                        id="navbar",
+                        children=[
+                            html.Ul(
+                                id="nav-list",
+                                children=[
+                                    html.Li(dcc.Link("Statistics", href=url_base_pathname)),
+                                    html.Li(dcc.Link("Query", href=f"{url_base_pathname}query")),
+                                ]
+                            )
+                        ],
+                    )
                 ],
-                className="d-flex align-items-center justify-content-between",
             ),
             dash.page_container,
             html.Footer(
@@ -118,6 +135,15 @@ def create_app_layout():
                         ),
                     ],
                 ),
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Query size Too Large")),
+                    dbc.ModalBody(f"Due to server hardware constraints, the maximum query output size has been limited to {query_row_limit} total games. Please reduce the range of your query."),
+                ],
+                id="constraints-modal",
+                is_open=False,
+                size="s",
             ),
         ],
     )
