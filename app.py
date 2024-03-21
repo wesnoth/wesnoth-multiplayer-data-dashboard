@@ -43,7 +43,15 @@ cache.init_app(app.server, config=CACHE_CONFIG)
 
 @cache.memoize()
 def get_config_data():
-    """Fetches and returns data from the configuration options file as a dictionary."""
+    """Loads user-defined configuration options.
+
+    The function first sets default configurations.
+    Then, it tries to load configurations from a .json file.
+    Then, it tries to load configurations from environment variables.
+
+    Returns:
+    dict: A dictionary containing user-defined configuration options.
+    """
 
     # Set default configuration
     config = {
