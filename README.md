@@ -70,6 +70,7 @@ The app looks for a file called `config.json` containing launch options in the r
     "port": "<your_port>",
     "database": "<your_database>",    
     "url_base_pathname": "<your_url_base_pathname>",
+    "query_row_limit": "<your_query_row_limit>",
     "table_names_map": {
         "game_info": "<your_game_info_table>",
         "game_content_info": "<your_game_content_info_table>",
