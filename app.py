@@ -44,22 +44,60 @@ cache.init_app(app.server, config=CACHE_CONFIG)
 @cache.memoize()
 def get_config_data():
     """Fetches and returns data from the configuration options file as a dictionary."""
-    with open("config.json", "r") as f:
-        config = json.load(f)
+
+    # Set default configuration
+    config = {
+        "user": None,
+        "password": None,
+        "host": "127.0.0.1",
+        "port": 3306,
+        "database": None,
+        "url_base_pathname": "/dashboard/",
+        "query_row_limit": 5000,
+        "table_names_map": {
+            "game_info": None,
+            "game_content_info": None,
+            "game_player_info": None
+        }         
+    }
+
+    # Try to load configuration from .json file
+    if os.path.isfile("config.json"):
+        with open("config.json", "r") as file:
+            file_config = json.load(file)
+            # Only update config with values that are not None and exist in the default configuration
+            config.update(
+                {
+                    key: value
+                    for key, value in file_config.items()
+                    if value is not None and key in config
+                }
+            )
+
+    # Try to load configuration from environment variables
+    env_config = {
+        "user": os.environ.get("DB_USER"),
+        "password": os.environ.get("DB_PASSWORD"),
+        "host": os.environ.get("DB_HOST"),
+        "port": int(os.environ.get("DB_PORT"))
+        if os.environ.get("DB_PORT")
+        else None,
+        "database": os.environ.get("DB_DATABASE"),
+    }
+    # Only update config with values that are not None
+    config.update(
+        {key: value for key, value in env_config.items() if value is not None}
+    )
+
     logging.debug(
-        "Read the configuration options file."
+        "Loaded user-defined app configuration options."
     )  # This only gets logged the first time the function is called and proves that memoization is functioning.
     return config
 
 
 def connect_to_mariadb():
     """
-    Connects to a MariaDB database using defaults, a .json file, or environment variables, for authentication.
-
-    The function first sets default configuration.
-    Then, it tries to load configuration from a .json file.
-    Then, it tries to load configuration from environment variables.
-    Finally, it tries to load configuration from command line parameters.
+    Connects to a MariaDB database using credentials from user-defined app configuration options.
 
     Returns:
     mariadb.connection: A connection object representing the database connection.
@@ -68,44 +106,14 @@ def connect_to_mariadb():
     mariadb.Error: An error occurred while connecting to the database.
     """
     try:
-        # Set default configuration
-        config = {
-            "user": None,
-            "password": None,
-            "host": "127.0.0.1",
-            "port": 3306,
-            "database": None,
-        }
-
-        # Try to load configuration from .json file
-        if os.path.isfile("config.json"):
-            with open("config.json", "r") as f:
-                file_config = json.load(f)
-                # Only update config with values that are not None and exist in the default configuration
-                config.update(
-                    {
-                        key: value
-                        for key, value in file_config.items()
-                        if value is not None and key in config
-                    }
-                )
-
-        # Try to load configuration from environment variables
-        env_config = {
-            "user": os.environ.get("DB_USER"),
-            "password": os.environ.get("DB_PASSWORD"),
-            "host": os.environ.get("DB_HOST"),
-            "port": int(os.environ.get("DB_PORT"))
-            if os.environ.get("DB_PORT")
-            else None,
-            "database": os.environ.get("DB_DATABASE"),
-        }
-        # Only update config with values that are not None
-        config.update(
-            {key: value for key, value in env_config.items() if value is not None}
+        config = get_config_data()
+        connection = mariadb.connect(
+            user=config["user"],
+            password=config["password"],
+            host=config["host"],
+            port=config["port"],
+            database=config["database"]
         )
-
-        connection = mariadb.connect(**config)
         return connection
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
