@@ -81,6 +81,8 @@ The app looks for a file called `config.json` containing launch options in the r
 
 __*The `url_base_pathname` must start and end with "/". This field is optional and defaults to "/" when undeclared.__
 
+__*`query_row_limit` is an integer that sets the maximum number of games that a user will be allowed to query from the Query Page. A popup will inform the user if their query size is too large and exceeds the limit.__
+
 __*It's better for `port` to be an integer instead of a string with quotes so that if you run `pytest`, the tests will be able to connect to the database.__
 
 __*This file is not tracked in Git.__
