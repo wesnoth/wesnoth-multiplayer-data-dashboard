@@ -1,0 +1,44 @@
+name: IRC Notification
+on:
+  push:
+  pull_request_target:
+    types: [ opened, closed, reopened ]
+  issues:
+    types: [ opened, closed, reopened ]
+  # create: # creation also gets mentioned when pushing
+  delete:
+
+jobs:
+  notify:
+    if: vars.IRC_CHANNEL != '' # skip if not set up (like in a fork for example)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare message
+        if: github.event_name == 'push'
+        env:
+          MSG: ${{ github.event.head_commit.message }}
+        run: printf COMMIT_SUBJECT=%s "${MSG}" | head -n 1 >> "$GITHUB_ENV"
+      - uses: rectalogic/notify-irc@v1
+        env: { COLOR: "\x03", RESET: "\x0F", BLUE: "02", PURPLE: "06", ACTOR: "\x0315${{ github.actor }}\x0F" }
+        with:
+          channel: ${{ vars.IRC_CHANNEL }}
+          server: ${{ vars.IRC_SERVER }}
+          nickname: ${{ vars.IRC_NICK }} # is also used for sasl username
+          sasl_password: ${{ secrets.IRC_SASL_PASSWORD }}
+# See https://docs.github.com/en/actions/learn-github-actions/expressions
+# github context: https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+# github.event data: https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads
+          message: >-
+            ${{ (github.event_name == 'push' &&
+                  format('({3}) {2} {4} {0}{5}{6}{1}: {7}: {0}{8}{9}{1}', env.COLOR, env.RESET, env.ACTOR, github.event.repository.name,
+                    (github.event.created && (github.event.tag && 'tagged' || 'created branch')) || (github.event.deleted && 'deleted') || (github.event.forced && 'force-pushed to') || 'pushed to',
+                    env.PURPLE, github.ref_name, env.COMMIT_SUBJECT, env.BLUE, github.event.head_commit.url)
+                ) || (github.event_name == 'pull_request_target' &&
+                  format('({3}) {2} {4} PR #{5} for {0}{6}{7}{1}: {8}: {0}{9}{10}{1}', env.COLOR, env.RESET, env.ACTOR, github.event.repository.name, github.event.action, github.event.number, env.PURPLE, github.base_ref, github.event.pull_request.title, env.BLUE, github.event.pull_request.html_url)
+                ) || (github.event_name == 'issues' &&
+                  format('({3}) {2} {4} issue {0}{5}#{6}{1}: {7}: {0}{8}{9}{1}', env.COLOR, env.RESET, env.ACTOR, github.event.repository.name, github.event.action, env.PURPLE, github.event.issue.number, github.event.issue.title, env.BLUE, github.event.issue.html_url)
+                ) || ((github.event_name == 'create' || github.event_name == 'delete') &&
+                  format('({3}) {2} {4}d {5} {0}{6}{7}{1}', env.COLOR, env.RESET, env.ACTOR, github.event.repository.name, github.event_name, github.event.ref_type, env.PURPLE, github.event.ref)
+                )
+            }}
+          _debug: ${{ toJSON(github) }}
