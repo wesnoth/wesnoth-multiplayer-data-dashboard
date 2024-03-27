@@ -1,6 +1,6 @@
 # Wesnoth Multiplayer Data Dashboard
 
-This is a dashboard that allows you to query and visualize data that the [The Battle for Wesnoth Project](https://wiki.wesnoth.org/Project) collects about multiplayer games played on the official server.
+This is a dashboard that allows you to query and visualize data that the [The Battle for Wesnoth Project](https://wiki.wesnoth.org/Project) collects about multiplayer games played on the official server. The live app can be viewed at https://replays.wesnoth.org/dashboard/.
 
 ![Full Page Screenshot](readme_assets/full_page.png)
 
