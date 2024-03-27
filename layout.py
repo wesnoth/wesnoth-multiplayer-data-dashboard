@@ -16,6 +16,12 @@ def create_app():
         Dash: A Dash web application instance.
     """
 
+    # This section redundantly reads from 'config.json' due to limitations in accessing configuration data.
+    # It's not feasible to use 'get_config_data()' from 'app.py' because it relies on flask-caching
+    # for memoization, which can only be set up after the 'app' object instantiation.
+    # Additionally, 'url_base_pathname' can only be set during app instantiation, not afterwards.
+    # Thus, we cannot instantiate 'app', set up flask-caching, fetch config data using the memoized
+    # 'get_config_data()', and then update 'url_base_pathname'.
     with open("config.json", "r") as f:
         config = json.load(f)
         url_base_pathname = config["url_base_pathname"]
