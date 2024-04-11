@@ -98,7 +98,7 @@ def create_app_layout(query_row_limit, url_base_pathname):
                                 id="modal",
                                 is_open=False,
                                 size="xl",
-                            ),                            
+                            ),
                         ],
                         className="d-flex align-items-center justify-content-between",
                     ),
@@ -108,12 +108,18 @@ def create_app_layout(query_row_limit, url_base_pathname):
                             html.Ul(
                                 id="nav-list",
                                 children=[
-                                    html.Li(dcc.Link("Statistics", href=url_base_pathname)),
-                                    html.Li(dcc.Link("Query", href=f"{url_base_pathname}query")),
-                                ]
+                                    html.Li(
+                                        dcc.Link("Statistics", href=url_base_pathname)
+                                    ),
+                                    html.Li(
+                                        dcc.Link(
+                                            "Query", href=f"{url_base_pathname}query"
+                                        )
+                                    ),
+                                ],
                             )
                         ],
-                    )
+                    ),
                 ],
             ),
             dash.page_container,
@@ -145,7 +151,9 @@ def create_app_layout(query_row_limit, url_base_pathname):
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Query size Too Large")),
-                    dbc.ModalBody(f"Due to server hardware constraints, the maximum query output size has been limited to {query_row_limit} total games. Please reduce the range of your query."),
+                    dbc.ModalBody(
+                        f"Due to server hardware constraints, the maximum query output size has been limited to {query_row_limit} total games. Please reduce the range of your query."
+                    ),
                 ],
                 id="constraints-modal",
                 is_open=False,

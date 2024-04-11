@@ -65,8 +65,8 @@ def get_config_data():
         "table_names_map": {
             "game_info": None,
             "game_content_info": None,
-            "game_player_info": None
-        }         
+            "game_player_info": None,
+        },
     }
 
     # Try to load configuration from .json file
@@ -87,9 +87,7 @@ def get_config_data():
         "user": os.environ.get("DB_USER"),
         "password": os.environ.get("DB_PASSWORD"),
         "host": os.environ.get("DB_HOST"),
-        "port": int(os.environ.get("DB_PORT"))
-        if os.environ.get("DB_PORT")
-        else None,
+        "port": int(os.environ.get("DB_PORT")) if os.environ.get("DB_PORT") else None,
         "database": os.environ.get("DB_DATABASE"),
     }
     # Only update config with values that are not None
@@ -120,7 +118,7 @@ def connect_to_mariadb():
             password=config["password"],
             host=config["host"],
             port=config["port"],
-            database=config["database"]
+            database=config["database"],
         )
         return connection
     except mariadb.Error as error:
@@ -132,6 +130,7 @@ def connect_to_mariadb():
 
 
 """Statistics Page Callbacks"""
+
 
 @callback(
     Output("total-games-value", "children"),
@@ -516,6 +515,7 @@ def update_public_chart(start_date, end_date):
 
 """Query Page Callbacks"""
 
+
 @callback(
     Output("total-games-value-query", "children"),
     Output("total-games-integer-value", "data"),
@@ -560,10 +560,10 @@ def update_total_games_value(start_date, end_date):
 @callback(
     Output("table", "data"),
     Output("constraints-modal", "is_open"),
-    Input("total-games-integer-value", 'data'),
-    State('date-picker-query', 'start_date'),
-    State('date-picker-query', 'end_date'),
-    prevent_initial_call=True
+    Input("total-games-integer-value", "data"),
+    State("date-picker-query", "start_date"),
+    State("date-picker-query", "end_date"),
+    prevent_initial_call=True,
 )
 def update_table(total_games, start_date, end_date):
     """
@@ -579,7 +579,7 @@ def update_table(total_games, start_date, end_date):
     # Validate that both start_date and end_date are not None.
     if start_date is None or end_date is None:
         raise PreventUpdate
-    
+
     query_row_limit = get_config_data().get("query_row_limit", 5000)
 
     # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
@@ -590,29 +590,31 @@ def update_table(total_games, start_date, end_date):
     cursor = mariadb_connection.cursor()
     target_table = get_config_data()["table_names_map"]["game_info"]
     cursor.execute(
-        f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
+        f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
+        (start_date, end_date),
+    )
     columns = [i[0] for i in cursor.description]
     df = (
         pd.DataFrame(cursor.fetchall(), columns=columns)
         .map(lambda x: x[0] if type(x) is bytes else x)
         .assign(
-            START_TIME=lambda x: pd.to_datetime(x['START_TIME']),
-            END_TIME=lambda x: pd.to_datetime(x['END_TIME']),
+            START_TIME=lambda x: pd.to_datetime(x["START_TIME"]),
+            END_TIME=lambda x: pd.to_datetime(x["END_TIME"]),
             # Calculate the game duration in minutes.
-            GAME_DURATION=lambda x: (
-                x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
+            GAME_DURATION=lambda x: (x["END_TIME"] - x["START_TIME"]).dt.total_seconds()
+            / 60,
         )
     )
     cursor.close()
     mariadb_connection.close()
-    logging.debug('Fetched data for table from database')
-    return df.to_dict('records'), False
+    logging.debug("Fetched data for table from database")
+    return df.to_dict("records"), False
 
 
 @callback(
-    Output('game-duration-histogram', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("game-duration-histogram", "figure"),
+    Input("table", "data"),
+    State("table", "columns"),
 )
 def update_game_duration_histogram(data, columns):
     """
@@ -625,17 +627,14 @@ def update_game_duration_histogram(data, columns):
     Returns:
         plotly.graph_objects.Figure: The updated game-duration-histogram.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
+    df = pd.DataFrame(data, columns=[column["name"] for column in columns])
     figure = px.histogram(
         df,
-        x='GAME_DURATION',
-        title='Game Duration (minutes)',
-        labels={'GAME_DURATION': 'Duration (minutes)'},
-        histnorm='percent',
-    ).update_traces(
-        marker_line_width=1,
-        marker_line_color="white"
-    )
+        x="GAME_DURATION",
+        title="Game Duration (minutes)",
+        labels={"GAME_DURATION": "Duration (minutes)"},
+        histnorm="percent",
+    ).update_traces(marker_line_width=1, marker_line_color="white")
     figure.update_layout(
         hoverlabel=dict(
             bgcolor="white",
@@ -646,13 +645,16 @@ def update_game_duration_histogram(data, columns):
 
 """Page template callbacks (header/footer sections)"""
 
+
 @callback(
     Output("modal", "is_open"),
     Input("user-guide-button", "n_clicks"),
     Input("close-button", "n_clicks"),
     State("modal", "is_open"),
 )
-def toggle_user_guide_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
+def toggle_user_guide_modal(
+    user_guide_button_clicks, close_button_clicks, is_modal_open
+):
     """
     Toggles the state of the modal based on the user-guide-button clicks and close-button clicks.
 
