@@ -5,27 +5,20 @@ import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
 
 
-def create_app():
+def create_app(url_base_pathname: str, query_row_limit: int) -> Dash:
     """
     Creates a Dash web application instance for the Wesnoth Multiplayer Dashboard.
 
     This function initializes a Dash web application instance with external stylesheets,
     meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
 
+    Args:
+        url_base_pathname (str): The base URL path for the Dash web application.
+        query_row_limit (int): The maximum number of rows that can be returned by a query to the database.
+
     Returns:
         Dash: A Dash web application instance.
     """
-
-    # This section redundantly reads from 'config.json' due to limitations in accessing configuration data.
-    # It's not feasible to use 'get_config_data()' from 'app.py' because it relies on flask-caching
-    # for memoization, which can only be set up after the 'app' object instantiation.
-    # Additionally, 'url_base_pathname' can only be set during app instantiation, not afterwards.
-    # Thus, we cannot instantiate 'app', set up flask-caching, fetch config data using the memoized
-    # 'get_config_data()', and then update 'url_base_pathname'.
-    with open("config.json", "r") as f:
-        config = json.load(f)
-        url_base_pathname = config["url_base_pathname"]
-        query_row_limit = config.get("query_row_limit", 5000)
 
     app = Dash(
         __name__,

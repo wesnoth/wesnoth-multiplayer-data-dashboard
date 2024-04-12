@@ -2,4 +2,3 @@ dash
 dash-bootstrap-components
 mariadb
 pandas
-Flask-Caching

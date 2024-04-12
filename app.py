@@ -22,26 +22,10 @@ import pandas as pd
 import plotly.express as px
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
-from flask_caching import Cache
 
 from layout import create_app
 
 
-app = create_app()
-server = app.server
-
-# Set up Flask-Caching for sharing data between callbacks
-# Refer to the documentation for more information:
-# Dash documentation: https://dash.plotly.com/sharing-data-between-callbacks
-# Flask-Caching documentation: https://flask-caching.readthedocs.io/en/latest/
-CACHE_CONFIG = {
-    "CACHE_TYPE": "SimpleCache",  # SimpleCache stores cached data in memory as a Dictionary.
-}
-cache = Cache()
-cache.init_app(app.server, config=CACHE_CONFIG)
-
-
-@cache.memoize()
 def get_config_data():
     """Loads user-defined configuration options.
 
@@ -97,11 +81,16 @@ def get_config_data():
 
     logging.debug(
         "Loaded user-defined app configuration options."
-    )  # This only gets logged the first time the function is called and proves that memoization is functioning.
+    )
     return config
 
 
-def connect_to_mariadb():
+config = get_config_data()
+app = create_app(config["url_base_pathname"], config["query_row_limit"])
+server = app.server
+
+
+def connect_to_mariadb(config):
     """
     Connects to a MariaDB database using credentials from user-defined app configuration options.
 
@@ -112,7 +101,6 @@ def connect_to_mariadb():
     mariadb.Error: An error occurred while connecting to the database.
     """
     try:
-        config = get_config_data()
         connection = mariadb.connect(
             user=config["user"],
             password=config["password"],
@@ -157,9 +145,9 @@ def update_total_games_value(start_date, end_date):
         raise PreventUpdate
 
     # Fetch the total count of games played in the given date range from the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -193,9 +181,9 @@ def update_instance_version_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -246,9 +234,9 @@ def update_oos_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -303,9 +291,9 @@ def update_reload_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -360,9 +348,9 @@ def update_observers_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -417,9 +405,9 @@ def update_password_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -474,9 +462,9 @@ def update_public_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
@@ -542,9 +530,9 @@ def update_total_games_value(start_date, end_date):
         raise PreventUpdate
 
     # Fetch the total count of games played in the given date range from the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -580,15 +568,15 @@ def update_table(total_games, start_date, end_date):
     if start_date is None or end_date is None:
         raise PreventUpdate
 
-    query_row_limit = get_config_data().get("query_row_limit", 5000)
+    query_row_limit = config.get("query_row_limit", 5000)
 
     # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
     if total_games > query_row_limit:
         return [], True
 
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
