@@ -5,21 +5,20 @@ import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
 
 
-def create_app():
+def create_app(url_base_pathname: str, query_row_limit: int) -> Dash:
     """
     Creates a Dash web application instance for the Wesnoth Multiplayer Dashboard.
 
     This function initializes a Dash web application instance with external stylesheets,
     meta tags, and a layout tailored for displaying Wesnoth multiplayer game data.
 
+    Args:
+        url_base_pathname (str): The base URL path for the Dash web application.
+        query_row_limit (int): The maximum number of rows that can be returned by a query to the database.
+
     Returns:
         Dash: A Dash web application instance.
     """
-
-    with open("config.json", "r") as f:
-        config = json.load(f)
-        url_base_pathname = config["url_base_pathname"]
-        query_row_limit = config.get("query_row_limit", 5000)
 
     app = Dash(
         __name__,
@@ -92,7 +91,7 @@ def create_app_layout(query_row_limit, url_base_pathname):
                                 id="modal",
                                 is_open=False,
                                 size="xl",
-                            ),                            
+                            ),
                         ],
                         className="d-flex align-items-center justify-content-between",
                     ),
@@ -102,12 +101,18 @@ def create_app_layout(query_row_limit, url_base_pathname):
                             html.Ul(
                                 id="nav-list",
                                 children=[
-                                    html.Li(dcc.Link("Statistics", href=url_base_pathname)),
-                                    html.Li(dcc.Link("Query", href=f"{url_base_pathname}query")),
-                                ]
+                                    html.Li(
+                                        dcc.Link("Statistics", href=url_base_pathname)
+                                    ),
+                                    html.Li(
+                                        dcc.Link(
+                                            "Query", href=f"{url_base_pathname}query"
+                                        )
+                                    ),
+                                ],
                             )
                         ],
-                    )
+                    ),
                 ],
             ),
             dash.page_container,
@@ -139,7 +144,9 @@ def create_app_layout(query_row_limit, url_base_pathname):
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Query size Too Large")),
-                    dbc.ModalBody(f"Due to server hardware constraints, the maximum query output size has been limited to {query_row_limit} total games. Please reduce the range of your query."),
+                    dbc.ModalBody(
+                        f"Due to server hardware constraints, the maximum query output size has been limited to {query_row_limit} total games. Please reduce the range of your query."
+                    ),
                 ],
                 id="constraints-modal",
                 is_open=False,

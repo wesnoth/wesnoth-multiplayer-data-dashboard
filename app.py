@@ -22,44 +22,77 @@ import pandas as pd
 import plotly.express as px
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
-from flask_caching import Cache
 
 from layout import create_app
 
 
-app = create_app()
-server = app.server
-
-# Set up Flask-Caching for sharing data between callbacks
-# Refer to the documentation for more information:
-# Dash documentation: https://dash.plotly.com/sharing-data-between-callbacks
-# Flask-Caching documentation: https://flask-caching.readthedocs.io/en/latest/
-CACHE_CONFIG = {
-    "CACHE_TYPE": "SimpleCache",  # SimpleCache stores cached data in memory as a Dictionary.
-}
-cache = Cache()
-cache.init_app(app.server, config=CACHE_CONFIG)
-
-
-@cache.memoize()
 def get_config_data():
-    """Fetches and returns data from the configuration options file as a dictionary."""
-    with open("config.json", "r") as f:
-        config = json.load(f)
+    """Loads user-defined configuration options.
+
+    The function first sets default configurations.
+    Then, it tries to load configurations from a .json file.
+    Then, it tries to load configurations from environment variables.
+
+    Returns:
+    dict: A dictionary containing user-defined configuration options.
+    """
+
+    # Set default configuration
+    config = {
+        "user": None,
+        "password": None,
+        "host": "127.0.0.1",
+        "port": 3306,
+        "database": None,
+        "url_base_pathname": "/dashboard/",
+        "query_row_limit": 5000,
+        "table_names_map": {
+            "game_info": None,
+            "game_content_info": None,
+            "game_player_info": None,
+        },
+    }
+
+    # Try to load configuration from .json file
+    if os.path.isfile("config.json"):
+        with open("config.json", "r") as file:
+            file_config = json.load(file)
+            # Only update config with values that are not None and exist in the default configuration
+            config.update(
+                {
+                    key: value
+                    for key, value in file_config.items()
+                    if value is not None and key in config
+                }
+            )
+
+    # Try to load configuration from environment variables
+    env_config = {
+        "user": os.environ.get("DB_USER"),
+        "password": os.environ.get("DB_PASSWORD"),
+        "host": os.environ.get("DB_HOST"),
+        "port": int(os.environ.get("DB_PORT")) if os.environ.get("DB_PORT") else None,
+        "database": os.environ.get("DB_DATABASE"),
+    }
+    # Only update config with values that are not None
+    config.update(
+        {key: value for key, value in env_config.items() if value is not None}
+    )
+
     logging.debug(
-        "Read the configuration options file."
-    )  # This only gets logged the first time the function is called and proves that memoization is functioning.
+        "Loaded user-defined app configuration options."
+    )
     return config
 
 
-def connect_to_mariadb():
-    """
-    Connects to a MariaDB database using defaults, a .json file, or environment variables, for authentication.
+config = get_config_data()
+app = create_app(config["url_base_pathname"], config["query_row_limit"])
+server = app.server
 
-    The function first sets default configuration.
-    Then it tries to load configuration from a .json file.
-    Then it tries to load configuration from environment variables.
-    Finally, it tries to load configuration from command line parameters.
+
+def connect_to_mariadb(config):
+    """
+    Connects to a MariaDB database using credentials from user-defined app configuration options.
 
     Returns:
     mariadb.connection: A connection object representing the database connection.
@@ -68,44 +101,13 @@ def connect_to_mariadb():
     mariadb.Error: An error occurred while connecting to the database.
     """
     try:
-        # Set default configuration
-        config = {
-            "user": None,
-            "password": None,
-            "host": "127.0.0.1",
-            "port": 3306,
-            "database": None,
-        }
-
-        # Try to load configuration from .json file
-        if os.path.isfile("config.json"):
-            with open("config.json", "r") as f:
-                file_config = json.load(f)
-                # Only update config with values that are not None and exist in the default configuration
-                config.update(
-                    {
-                        key: value
-                        for key, value in file_config.items()
-                        if value is not None and key in config
-                    }
-                )
-
-        # Try to load configuration from environment variables
-        env_config = {
-            "user": os.environ.get("DB_USER"),
-            "password": os.environ.get("DB_PASSWORD"),
-            "host": os.environ.get("DB_HOST"),
-            "port": int(os.environ.get("DB_PORT"))
-            if os.environ.get("DB_PORT")
-            else None,
-            "database": os.environ.get("DB_DATABASE"),
-        }
-        # Only update config with values that are not None
-        config.update(
-            {key: value for key, value in env_config.items() if value is not None}
+        connection = mariadb.connect(
+            user=config["user"],
+            password=config["password"],
+            host=config["host"],
+            port=config["port"],
+            database=config["database"],
         )
-
-        connection = mariadb.connect(**config)
         return connection
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
@@ -116,6 +118,7 @@ def connect_to_mariadb():
 
 
 """Statistics Page Callbacks"""
+
 
 @callback(
     Output("total-games-value", "children"),
@@ -142,9 +145,9 @@ def update_total_games_value(start_date, end_date):
         raise PreventUpdate
 
     # Fetch the total count of games played in the given date range from the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -178,9 +181,9 @@ def update_instance_version_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT INSTANCE_VERSION, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY INSTANCE_VERSION",
         (start_date, end_date),
@@ -231,9 +234,9 @@ def update_oos_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OOS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OOS",
         (start_date, end_date),
@@ -288,9 +291,9 @@ def update_reload_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT RELOAD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY RELOAD",
         (start_date, end_date),
@@ -345,9 +348,9 @@ def update_observers_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT OBSERVERS, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY OBSERVERS",
         (start_date, end_date),
@@ -402,9 +405,9 @@ def update_password_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PASSWORD, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PASSWORD",
         (start_date, end_date),
@@ -459,9 +462,9 @@ def update_public_chart(start_date, end_date):
         return px.pie()  # An empty chart
 
     # Query the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT PUBLIC, COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ? GROUP BY PUBLIC",
         (start_date, end_date),
@@ -500,6 +503,7 @@ def update_public_chart(start_date, end_date):
 
 """Query Page Callbacks"""
 
+
 @callback(
     Output("total-games-value-query", "children"),
     Output("total-games-integer-value", "data"),
@@ -526,9 +530,9 @@ def update_total_games_value(start_date, end_date):
         raise PreventUpdate
 
     # Fetch the total count of games played in the given date range from the database.
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
         f"SELECT COUNT(*) FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
         (start_date, end_date),
@@ -544,10 +548,10 @@ def update_total_games_value(start_date, end_date):
 @callback(
     Output("table", "data"),
     Output("constraints-modal", "is_open"),
-    Input("total-games-integer-value", 'data'),
-    State('date-picker-query', 'start_date'),
-    State('date-picker-query', 'end_date'),
-    prevent_initial_call=True
+    Input("total-games-integer-value", "data"),
+    State("date-picker-query", "start_date"),
+    State("date-picker-query", "end_date"),
+    prevent_initial_call=True,
 )
 def update_table(total_games, start_date, end_date):
     """
@@ -563,40 +567,42 @@ def update_table(total_games, start_date, end_date):
     # Validate that both start_date and end_date are not None.
     if start_date is None or end_date is None:
         raise PreventUpdate
-    
-    query_row_limit = get_config_data().get("query_row_limit", 5000)
+
+    query_row_limit = config.get("query_row_limit", 5000)
 
     # Inform the user that the query cannot be processed because the size of the data to process exceeds limitations.
     if total_games > query_row_limit:
         return [], True
 
-    mariadb_connection = connect_to_mariadb()
+    mariadb_connection = connect_to_mariadb(config)
     cursor = mariadb_connection.cursor()
-    target_table = get_config_data()["table_names_map"]["game_info"]
+    target_table = config["table_names_map"]["game_info"]
     cursor.execute(
-        f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?", (start_date, end_date))
+        f"SELECT * FROM {target_table} WHERE START_TIME BETWEEN ? AND ?",
+        (start_date, end_date),
+    )
     columns = [i[0] for i in cursor.description]
     df = (
         pd.DataFrame(cursor.fetchall(), columns=columns)
         .map(lambda x: x[0] if type(x) is bytes else x)
         .assign(
-            START_TIME=lambda x: pd.to_datetime(x['START_TIME']),
-            END_TIME=lambda x: pd.to_datetime(x['END_TIME']),
+            START_TIME=lambda x: pd.to_datetime(x["START_TIME"]),
+            END_TIME=lambda x: pd.to_datetime(x["END_TIME"]),
             # Calculate the game duration in minutes.
-            GAME_DURATION=lambda x: (
-                x['END_TIME'] - x['START_TIME']).dt.total_seconds() / 60,
+            GAME_DURATION=lambda x: (x["END_TIME"] - x["START_TIME"]).dt.total_seconds()
+            / 60,
         )
     )
     cursor.close()
     mariadb_connection.close()
-    logging.debug('Fetched data for table from database')
-    return df.to_dict('records'), False
+    logging.debug("Fetched data for table from database")
+    return df.to_dict("records"), False
 
 
 @callback(
-    Output('game-duration-histogram', 'figure'),
-    Input('table', 'data'),
-    State('table', 'columns'),
+    Output("game-duration-histogram", "figure"),
+    Input("table", "data"),
+    State("table", "columns"),
 )
 def update_game_duration_histogram(data, columns):
     """
@@ -609,17 +615,14 @@ def update_game_duration_histogram(data, columns):
     Returns:
         plotly.graph_objects.Figure: The updated game-duration-histogram.
     """
-    df = pd.DataFrame(data, columns=[column['name'] for column in columns])
+    df = pd.DataFrame(data, columns=[column["name"] for column in columns])
     figure = px.histogram(
         df,
-        x='GAME_DURATION',
-        title='Game Duration (minutes)',
-        labels={'GAME_DURATION': 'Duration (minutes)'},
-        histnorm='percent',
-    ).update_traces(
-        marker_line_width=1,
-        marker_line_color="white"
-    )
+        x="GAME_DURATION",
+        title="Game Duration (minutes)",
+        labels={"GAME_DURATION": "Duration (minutes)"},
+        histnorm="percent",
+    ).update_traces(marker_line_width=1, marker_line_color="white")
     figure.update_layout(
         hoverlabel=dict(
             bgcolor="white",
@@ -630,13 +633,16 @@ def update_game_duration_histogram(data, columns):
 
 """Page template callbacks (header/footer sections)"""
 
+
 @callback(
     Output("modal", "is_open"),
     Input("user-guide-button", "n_clicks"),
     Input("close-button", "n_clicks"),
     State("modal", "is_open"),
 )
-def toggle_user_guide_modal(user_guide_button_clicks, close_button_clicks, is_modal_open):
+def toggle_user_guide_modal(
+    user_guide_button_clicks, close_button_clicks, is_modal_open
+):
     """
     Toggles the state of the modal based on the user-guide-button clicks and close-button clicks.
 
