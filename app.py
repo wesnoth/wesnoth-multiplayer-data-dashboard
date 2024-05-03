@@ -580,15 +580,26 @@ def update_table(total_games, start_date, end_date):
         (start_date, end_date),
     )
     columns = [i[0] for i in cursor.description]
+    replay_server_base_url = "https://replays.wesnoth.org"
     df = (
         pd.DataFrame(cursor.fetchall(), columns=columns)
         .map(lambda x: x[0] if type(x) is bytes else x)
         .assign(
             START_TIME=lambda x: pd.to_datetime(x["START_TIME"]),
             END_TIME=lambda x: pd.to_datetime(x["END_TIME"]),
-            # Calculate the game duration in minutes.
             GAME_DURATION=lambda x: (x["END_TIME"] - x["START_TIME"]).dt.total_seconds()
-            / 60,
+            / 60,  # Calculate the game duration in minutes.
+            REPLAY_NAME=lambda x: "["
+            + x["REPLAY_NAME"]
+            + "]("
+            + replay_server_base_url
+            + "/"
+            + x["INSTANCE_VERSION"].str.slice(0, 4)
+            + "/"
+            + x["END_TIME"].dt.strftime("%Y/%m/%d")
+            + "/"
+            + x["REPLAY_NAME"]
+            + ")",  # Markdown link to replay file download
         )
     )
     cursor.close()

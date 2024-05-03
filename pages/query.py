@@ -67,7 +67,7 @@ layout = (
                         dash_table.DataTable(
                             id="table",
                             columns=[
-                                {"name": column, "id": column}
+                                {"name": column, "id": column} if column != "REPLAY_NAME" else {"name": column, "id": column, "presentation": "markdown"}
                                 for column in column_names
                             ],
                             editable=True,
