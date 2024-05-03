@@ -79,9 +79,7 @@ def get_config_data():
         {key: value for key, value in env_config.items() if value is not None}
     )
 
-    logging.debug(
-        "Loaded user-defined app configuration options."
-    )
+    logging.debug("Loaded user-defined app configuration options.")
     return config
 
 
