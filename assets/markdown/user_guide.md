@@ -18,6 +18,19 @@ You can sort the table by ascending or descending order by clicking on the up an
 
 There is a cell below the column headers that can be used to filter the table data. A special filtering syntax is used. See the full [filter syntax reference](https://dash.plotly.com/datatable/filtering).
 
+To get started, there are four filters you can use:
+1. equality: `=`
+2. contains a substring: `contains`
+3. partial datetime match: `datestartswith`
+4. a group of comparison operators: `>, >=, <, <=, !=`
+
+By default, if you only type a value with no operator, depending on the data type of the column, the filter might default to `contains` for string columns and `=` for numeric columns. To be more sure your filtering is correct, you could use the operators explicitly.
+
+Here are some examples that have been tested:
+1. Filter for games that contain OOS using `=0` on the OOS column.
+2. Filter for games longer than 50 minutes using `>50` on the `GAME_DURATION` column.
+3. Filter for games using version 1.16 using `contains1.16` on the `INSTANCE_VERSION` column.
+
 #### Editing Cell Values
 
 You can edit the values in individual cells by selecting any cell and typing. Note that there is no blinking cursor that appears when you select a cell; just start typing and the value will change.
