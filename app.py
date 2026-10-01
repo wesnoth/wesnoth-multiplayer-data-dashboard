@@ -586,11 +586,11 @@ def update_table(total_games, start_date, end_date):
         pd.DataFrame(cursor.fetchall(), columns=columns)
         .map(lambda x: x[0] if type(x) is bytes else x)
         .assign(
-            START_TIME=lambda x: pd.to_datetime(x["START_TIME"]),
-            END_TIME=lambda x: pd.to_datetime(x["END_TIME"]),
             # Calculate the game duration in minutes.
-            GAME_DURATION=lambda x: (x["END_TIME"] - x["START_TIME"]).dt.total_seconds()
-            / 60,
+            GAME_DURATION=lambda x: (x["END_TIME"] - x["START_TIME"]).dt.total_seconds() / 60,
+            # must be after duration calculation since this rewrites the dates as text
+            START_TIME=lambda x: x["START_TIME"].dt.strftime('%Y-%m-%d %H:%M:%S'),
+            END_TIME=lambda x: x["END_TIME"].dt.strftime('%Y-%m-%d %H:%M:%S').fillna(""),
         )
     )
     cursor.close()
@@ -615,7 +615,7 @@ def update_game_duration_histogram(data, columns):
     Returns:
         plotly.graph_objects.Figure: The updated game-duration-histogram.
     """
-    df = pd.DataFrame(data, columns=[column["name"] for column in columns])
+    df = pd.DataFrame(data, columns=[column["id"] for column in columns])
     figure = px.histogram(
         df,
         x="GAME_DURATION",
