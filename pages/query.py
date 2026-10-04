@@ -18,7 +18,7 @@ column_config = {
     'PASSWORD': {'name': 'Pass'},
     'PUBLIC': {'name': 'Public'},
     'GAME_DURATION': {'name': 'Duration', 'type': 'numeric', 'format': Format(precision=2, scheme=Scheme.fixed)},
-    'REPLAY_NAME': {'name': 'Replay Name'},
+    'REPLAY_NAME': {'name': 'Replay', 'type': 'text', 'presentation': 'markdown'},
     'INSTANCE_UUID': {'name': 'Instance UUID'}
 }
 
@@ -81,6 +81,11 @@ layout = html.Div(
                     page_size=10,
                     style_table={'overflowX': 'auto'},
                     export_format="csv",
+                    # needed to keep markdown field (replay URL) as a single line
+                    css=[{'selector': '.cell-markdown p', 'rule': 'display: inline;'}],
+                    # try to keep emoji appearance consistent with the right fonts
+                    style_cell={'fontFamily': ('system-ui, Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'), 'textAlign': 'center'},
+                    style_cell_conditional=[{'if': {'column_id': ['GAME_DURATION', 'GAME_ID']}, 'textAlign': 'right'}],
                 ),
             )
         ]),

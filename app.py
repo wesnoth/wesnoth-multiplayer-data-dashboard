@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import sys
+import urllib.parse
 
 import mariadb
 import pandas as pd
@@ -112,6 +113,30 @@ def connect_to_mariadb(config):
     except mariadb.Error as error:
         logging.error(f"Error connecting to MariaDB Platform: {error}")
         sys.exit(1)
+
+
+def build_replay_links(df: pd.DataFrame) -> pd.Series:
+    """Generate clickable Markdown links for Wesnoth replays."""
+    # escape name for markdown syntax
+    display_names = df["REPLAY_NAME"].astype(str).str.replace(r"([]_*`~[])", r"\\\1", regex=True)
+    # extract version (e.g., '1.17' from '1.17.10')
+    versions = df["INSTANCE_VERSION"].astype(str).str.split('.').str[:2].str.join('.')
+
+    date_paths = pd.to_datetime(df["END_TIME"]).dt.strftime('%Y/%m/%d')
+
+    # URL-encode the filename to get a valid URL
+    safe_file_names = df["REPLAY_NAME"].astype(str).apply(urllib.parse.quote)
+
+    public_links = ("[" + display_names + "](https://replays.wesnoth.org/" + versions + "/" + date_paths + "/" + safe_file_names + ")")
+
+    is_public = df["PUBLIC"].astype(int) == 1
+    has_ended = df["END_TIME"].notna()
+
+    result = pd.Series("🔒 Private", index=df.index)
+    result.loc[~has_ended] = "⚔️ Ongoing"
+    result.loc[is_public & has_ended] = public_links
+
+    return result
 
 
 """ Callback functions start here """
@@ -591,6 +616,12 @@ def update_table(total_games, start_date, end_date):
             # must be after duration calculation since this rewrites the dates as text
             START_TIME=lambda x: x["START_TIME"].dt.strftime('%Y-%m-%d %H:%M:%S'),
             END_TIME=lambda x: x["END_TIME"].dt.strftime('%Y-%m-%d %H:%M:%S').fillna(""),
+            REPLAY_NAME=build_replay_links,
+            OOS=lambda x: x["OOS"].astype(int).map({1: "⚠️ Yes", 0: "✅ No"}),
+            RELOAD=lambda x: x["RELOAD"].astype(int).map({1: "🔄", 0: "❌"}),
+            PASSWORD=lambda x: x["PASSWORD"].astype(int).map({1: "🔒", 0: "🔓"}),
+            PUBLIC=lambda x: x["PUBLIC"].astype(int).map({1: "public", 0: "private"}),
+            OBSERVERS=lambda x: x["OBSERVERS"].astype(int).map({1: "👁️", 0: "🚫"}),
         )
     )
     cursor.close()
