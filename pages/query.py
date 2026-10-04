@@ -43,7 +43,7 @@ layout = html.Div(
                             id="date-picker-label",
                             children="Specify a Date Range"
                         ),
-                        dcc.DatePickerRange(id='date-picker-query')
+                        dcc.DatePickerRange(id='date-picker-query', updatemode='bothdates')
                     ]
                 ),
                 dbc.Col(
